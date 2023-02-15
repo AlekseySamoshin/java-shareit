@@ -66,7 +66,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public boolean checkEmailIsAvailable(Long userId, String checkedEmail) {
         for (User user : users.values()) {
-            if (user.getEmail().equals(checkedEmail) && !(user.getId() == userId)) return false;
+            if (user.getEmail().equals(checkedEmail) && !(user.getId().equals(userId))) return false;
         }
         return true;
     }
