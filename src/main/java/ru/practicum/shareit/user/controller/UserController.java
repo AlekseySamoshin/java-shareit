@@ -21,6 +21,7 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
     @GetMapping
     public List<UserDto> getUsers() {
         log.info("Запрос на получение списка пользователей");

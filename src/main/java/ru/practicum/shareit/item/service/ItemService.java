@@ -23,7 +23,7 @@ public class ItemService {
     ItemDtoMapper itemDtoMapper;
 
     @Autowired
-    public ItemService (@Qualifier("InMemoryItemStorage") ItemStorage itemStorage, ItemDtoMapper itemDtoMapper) {
+    public ItemService(@Qualifier("InMemoryItemStorage") ItemStorage itemStorage, ItemDtoMapper itemDtoMapper) {
         this.itemStorage = itemStorage;
         this.itemDtoMapper = itemDtoMapper;
     }

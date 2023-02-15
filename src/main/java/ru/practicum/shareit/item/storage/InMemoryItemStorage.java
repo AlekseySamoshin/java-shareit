@@ -16,7 +16,7 @@ import java.util.List;
 @Component
 @Qualifier("InMemoryItemStorage")
 @Slf4j
-public class InMemoryItemStorage implements ItemStorage{
+public class InMemoryItemStorage implements ItemStorage {
     private Long generatedId = 1L;
     private final HashMap<Long, List<Item>> items;
     private final UserStorage userStorage;

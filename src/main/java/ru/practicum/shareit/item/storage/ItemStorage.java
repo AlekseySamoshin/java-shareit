@@ -8,6 +8,7 @@ import java.util.List;
 @Component
 public interface ItemStorage {
     public List<Item> getItemsByUserId(Long userId);
+
     public List<Item> getItems();
 
     Item addItem(Long userId, Item mapDto);

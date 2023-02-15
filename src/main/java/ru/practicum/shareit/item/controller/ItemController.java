@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/items")
 @Slf4j
 public class ItemController {
-    private final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
+    private final String userIdRequestHeader = "X-Sharer-User-Id";
     ItemService itemService;
 
     @Autowired
@@ -24,14 +24,14 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> getItems(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId) {
+    public List<ItemDto> getItems(@RequestHeader(value = userIdRequestHeader) Long userId) {
         log.info("Запрос на получение списка вещей");
         return itemService.getItemsByUserId(userId);
     }
 
     @GetMapping("/{itemId}")
     public ItemDto getItemById(
-            @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+            @RequestHeader(value = userIdRequestHeader) Long userId,
             @PathVariable Long itemId) {
         log.info("Запрос на получение вещи id=" + itemId);
         return itemService.getItemById(itemId);
@@ -39,7 +39,7 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> searchItemsByText(
-            @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+            @RequestHeader(value = userIdRequestHeader) Long userId,
             @RequestParam String text) {
         log.info("Запрос на поиск вещи. Текст запроса: " + text);
         return itemService.searchItemsByText(userId, text);
@@ -47,7 +47,7 @@ public class ItemController {
 
     @PostMapping
     public ItemDto addItem(
-            @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+            @RequestHeader(value = userIdRequestHeader) Long userId,
             @RequestBody ItemDto itemDto) {
         log.info("Запрос на добавление вещи пользователя id=" + userId);
         return itemService.addItem(userId, itemDto);
@@ -55,7 +55,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ItemDto updateItem(
-            @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+            @RequestHeader(value = userIdRequestHeader) Long userId,
             @PathVariable Long itemId,
             @RequestBody ItemDto itemDto) {
         log.info("Запрос на обновление вещи id=" + itemId + " от пользователя id=" + userId);

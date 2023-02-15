@@ -19,7 +19,7 @@ public class InMemoryUserStorage implements UserStorage {
     private long generatedId = 1;
 
     @Autowired
-    public InMemoryUserStorage (HashMap<Long, User> users) {
+    public InMemoryUserStorage(HashMap<Long, User> users) {
         this.users = users;
     }
 
@@ -29,9 +29,7 @@ public class InMemoryUserStorage implements UserStorage {
             log.warn("Ошибка добавления пользователя. Email занят.");
             throw new ConflictException("Email " + user.getEmail() + " уже занят");
         }
-        if(user.getId() == null) {
-            user.setId(generateId());
-        }
+        if (user.getId() == null) user.setId(generateId());
         users.put(user.getId(), user);
         log.info("Добавлен новый пользователь id=" + user.getId());
         return user;
