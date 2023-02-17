@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ItemService {
 
-    ItemStorage itemStorage;
-    ItemDtoMapper itemDtoMapper;
+    private final ItemStorage itemStorage;
+    private final ItemDtoMapper itemDtoMapper;
 
     @Autowired
     public ItemService(@Qualifier("InMemoryItemStorage") ItemStorage itemStorage, ItemDtoMapper itemDtoMapper) {
@@ -72,9 +72,15 @@ public class ItemService {
 
     public ItemDto updateItem(Long userId, Long itemId, ItemDto newItemDto) {
         ItemDto itemDto = getItemByIdAndUserId(userId, itemId);
-        if (newItemDto.getName() != null) itemDto.setName(newItemDto.getName());
-        if (newItemDto.getDescription() != null) itemDto.setDescription(newItemDto.getDescription());
-        if (newItemDto.getAvailable() != null) itemDto.setAvailable(newItemDto.getAvailable());
+        if (newItemDto.getName() != null) {
+            itemDto.setName(newItemDto.getName());
+        }
+        if (newItemDto.getDescription() != null) {
+            itemDto.setDescription(newItemDto.getDescription());
+        }
+        if (newItemDto.getAvailable() != null) {
+            itemDto.setAvailable(newItemDto.getAvailable());
+        }
         return itemDtoMapper.mapToDto(
                 itemStorage.addItem(userId, itemDtoMapper.mapToItem(itemDto))
         );

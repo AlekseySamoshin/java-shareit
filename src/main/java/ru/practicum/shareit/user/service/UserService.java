@@ -44,7 +44,9 @@ public class UserService {
 
     public UserDto updateUser(Long userId, UserDto userDto) {
         User user = userStorage.getUserById(userId);
-        if (userDto.getName() != null) user.setName(userDto.getName());
+        if (userDto.getName() != null) {
+            user.setName(userDto.getName());
+        }
         if (userDto.getEmail() != null) {
             if (userStorage.checkEmailIsAvailable(userId, userDto.getEmail()) == true) {
                 user.setEmail(userDto.getEmail());
@@ -59,9 +61,12 @@ public class UserService {
 
     public void validateUserDto(UserDto userDto) throws WrongDataException {
         StringBuilder message = new StringBuilder();
-        if (userDto.getEmail() == null || userDto.getEmail().isBlank() || !userDto.getEmail().contains("@"))
+        if (userDto.getEmail() == null || userDto.getEmail().isBlank() || !userDto.getEmail().contains("@")) {
             message.append("Не указан email! ");
-        if (userDto.getName().isBlank()) message.append("Не указан логин! ");
+        }
+        if (userDto.getName().isBlank()) {
+            message.append("Не указан логин! ");
+        }
         if (!message.toString().isBlank()) {
             log.warn("Ошибка валидации пользователя: " + message.toString());
             throw new WrongDataException(message.toString());

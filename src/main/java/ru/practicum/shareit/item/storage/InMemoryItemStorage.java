@@ -22,8 +22,8 @@ public class InMemoryItemStorage implements ItemStorage {
     private final UserStorage userStorage;
 
     @Autowired
-    public InMemoryItemStorage(HashMap<Long, List<Item>> items, UserStorage userStorage) {
-        this.items = items;
+    public InMemoryItemStorage(UserStorage userStorage) {
+        this.items = new HashMap<>();
         this.userStorage = userStorage;
     }
 

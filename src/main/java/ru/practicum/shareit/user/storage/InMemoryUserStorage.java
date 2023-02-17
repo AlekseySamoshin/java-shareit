@@ -19,8 +19,8 @@ public class InMemoryUserStorage implements UserStorage {
     private long generatedId = 1;
 
     @Autowired
-    public InMemoryUserStorage(HashMap<Long, User> users) {
-        this.users = users;
+    public InMemoryUserStorage() {
+        this.users = new HashMap<>();
     }
 
     @Override
@@ -29,7 +29,9 @@ public class InMemoryUserStorage implements UserStorage {
             log.warn("Ошибка добавления пользователя. Email занят.");
             throw new ConflictException("Email " + user.getEmail() + " уже занят");
         }
-        if (user.getId() == null) user.setId(generateId());
+        if (user.getId() == null) {
+            user.setId(generateId());
+        }
         users.put(user.getId(), user);
         log.info("Добавлен новый пользователь id=" + user.getId());
         return user;
@@ -66,7 +68,9 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public boolean checkEmailIsAvailable(Long userId, String checkedEmail) {
         for (User user : users.values()) {
-            if (user.getEmail().equals(checkedEmail) && !(user.getId().equals(userId))) return false;
+            if (user.getEmail().equals(checkedEmail) && !(user.getId().equals(userId))) {
+                return false;
+            }
         }
         return true;
     }
