@@ -1,12 +1,51 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 
-/**
- * TODO Sprint add-bookings.
- */
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/bookings")
 public class BookingController {
+    private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
+    private final BookingService bookingService;
+
+    @Autowired
+    public BookingController(BookingService bookingService, BookingRepository bookingRepository) {
+        this.bookingService = bookingService;
+    }
+
+    @PostMapping
+    public BookingDto addBooking(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                                 @RequestBody BookingShortDto bookingShortDto) {
+        return bookingService.addBooking(userId, bookingShortDto);
+    }
+
+    @PatchMapping("/{bookingId}")
+    public BookingDto updateBooking(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                                         @PathVariable Long bookingId,
+                                         @RequestParam Boolean approved) {
+        return bookingService.updateBooking(bookingId, userId, approved);
+    }
+
+    @GetMapping()
+    public List<BookingDto> getBookingsOfUser(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                                              @RequestParam(required = false) String state) {
+        return bookingService.getBookingsOfUser(userId, state);
+    }
+
+    @GetMapping("/owner")
+    public List<BookingDto> getBookingsOfOwnersItems(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                                                     @RequestParam(required = false) String state) {
+        return bookingService.getBookingsOfOwnerItems(userId, state);
+    }
+
+    @GetMapping("/{bookingId}")
+    public BookingDto getBooking(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                                      @PathVariable Long bookingId) {
+        return bookingService.getBooking(userId, bookingId);
+    }
 }
