@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
-    BookingRepository bookingRepository;
-    BookingDtoMapper bookingDtoMapper;
-    ItemRepository itemRepository;
-    UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final BookingDtoMapper bookingDtoMapper;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
 
     @Autowired
     public BookingService(BookingRepository bookingRepository,
@@ -37,14 +37,13 @@ public class BookingService {
     public BookingDto addBooking(Long userId, BookingShortDto bookingShortDto) {
         validateBookingDto(bookingShortDto);
         User booker = userRepository.findById(userId).get();
-        Optional<Item> item = itemRepository.findById(bookingShortDto.getItemId());
-        if (item.isEmpty()) {
-            throw new NotFoundException("Вешь с id=" + bookingShortDto.getItemId() + " не найдена!");
-        }
-        if (!item.get().isAvailable()) {
+        Item item = itemRepository.findById(bookingShortDto.getItemId()).orElseThrow(
+                () -> new NotFoundException("Вешь с id=" + bookingShortDto.getItemId() + " не найдена!")
+        );
+        if (!item.isAvailable()) {
             throw new WrongDataException("Вешь с id=" + bookingShortDto.getItemId() + " недоступна для аренды!");
         }
-        Booking booking = bookingDtoMapper.toBooking(bookingShortDto, item.get(), booker);
+        Booking booking = bookingDtoMapper.toBooking(bookingShortDto, item, booker);
         if (userId.equals(booking.getItem().getOwnerId())) {
             throw new NotFoundException("Забронировать собственную вещь нельзя! ");
         }
@@ -61,7 +60,7 @@ public class BookingService {
         Booking booking = findBookingById(bookingId);
         Item item = booking.getItem();
         if (!userId.equals(item.getOwnerId())) {
-            throw new NotFoundException("Пользователь id=" + userId + " не владелец вещи id=" + booking.getItem().getId()
+            throw new NotFoundException("Пользователь id=" + userId + " не владелец вещи id=" + item.getId()
                                          + ". Подтвердить или отклонить аренду нельзя!");
         }
         setBookingStatus(userId, booking, approved);
@@ -104,15 +103,13 @@ public class BookingService {
     }
 
     private User findUserByIdIfExists(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        }
-        return user.get();
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+        return user;
     }
 
     private void setBookingStatus(Long userId, Booking booking, Boolean approved) {
-        if (!(booking.getStatus() == null) && booking.getStatus().equals(BookingStatus.APPROVED)) {
+        if (BookingStatus.APPROVED.equals(booking.getStatus())) {
             throw new WrongDataException("Статус аренды уже подтвержден");
         }
         if (approved) {
@@ -123,11 +120,9 @@ public class BookingService {
     }
 
     private Booking findBookingById(Long bookingId) {
-        Optional<Booking> bookingOptional = bookingRepository.findById(bookingId);
-        if (bookingOptional.isEmpty()) {
-            throw new NotFoundException("Бронирование id=" + bookingId + "не найдено!");
-        }
-        return bookingOptional.get();
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(
+                () -> new NotFoundException("Бронирование id=" + bookingId + "не найдено!"));
+        return booking;
     }
 
     private void validateBookingDto(BookingShortDto bookingShortDto) {

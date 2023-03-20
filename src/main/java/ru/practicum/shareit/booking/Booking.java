@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @ToString
 @Table(name = "bookings", schema = "public")
 public class Booking {
-    private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

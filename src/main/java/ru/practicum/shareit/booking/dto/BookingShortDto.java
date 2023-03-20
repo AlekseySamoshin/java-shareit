@@ -8,10 +8,10 @@ import ru.practicum.shareit.booking.BookingStatus;
 @Getter
 @Setter
 public class BookingShortDto {
-    Booking booking = new Booking();
-    Long id;
-    Long itemId;
-    String start;
-    String end;
-    BookingStatus status;
+    private Booking booking = new Booking();
+    private Long id;
+    private Long itemId;
+    private String start;
+    private String end;
+    private BookingStatus status;
 }

@@ -16,10 +16,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,10 +46,9 @@ public class ItemService {
     }
 
     public List<ItemDto> getItemsByUserId(Long userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
+        );
         List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId).stream()
                 .map(itemDtoMapper::mapToDto)
                 .collect(Collectors.toList());
@@ -62,10 +58,9 @@ public class ItemService {
 
     public ItemDto addItem(Long userId, ItemDto itemDto) {
         validateItemDto(itemDto);
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
+        );
         itemDto.setOwnerId(userId);
         return itemDtoMapper.mapToDto(itemRepository.save(itemDtoMapper.mapToItem(itemDto)));
     }
@@ -83,22 +78,20 @@ public class ItemService {
     }
 
     public ItemDto getItemByIdAndOwnerId(Long userId, Long itemId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        }
-        Optional<Item> itemOptional = itemRepository.findByIdAndOwnerId(userId, itemId);
-        if (itemOptional.isEmpty()) {
-            throw new NotFoundException("Вещь с id=" + itemId + " не найдена у пользователя id=" + userId);
-        }
-        ItemDto itemDto = itemDtoMapper.mapToDto(itemOptional.get());
+        User userOptional = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
+        );
+        Item itemOptional = itemRepository.findByIdAndOwnerId(userId, itemId).orElseThrow(
+                () -> new NotFoundException("Вещь с id=" + itemId + " не найдена у пользователя id=" + userId)
+        );
+        ItemDto itemDto = itemDtoMapper.mapToDto(itemOptional);
         findCommentsForItem(itemDto);
         return findLastAndNextBookings(itemDto, userId);
     }
 
     public List<ItemDto> searchItemsByText(Long userId, String text) {
         if (text.isBlank()) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         List<Item> items = itemRepository.findByText(text.toLowerCase());
         List<ItemDto> result = items.stream()
@@ -129,15 +122,19 @@ public class ItemService {
 
     public CommentDto addNewComment(Long userId, Long itemId, CommentDto commentDto) {
         if (commentDto.getText().isBlank()) throw new WrongDataException("Комментарий отсутствует");
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        Optional<Item> itemOptional = itemRepository.findById(itemId);
-        if (itemOptional.isEmpty()) throw new NotFoundException("Вещь id=" + itemId + " не найдена");
-        if (!checkUserIsBookerOfItem(userId, itemId)) throw new WrongDataException("Пользователь не брал вещь id=" + itemId + " в аренду");
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
+        );
+        Item item = itemRepository.findById(itemId).orElseThrow(
+                () -> new NotFoundException("Вещь id=" + itemId + " не найдена")
+        );
+        if (!checkUserIsBookerOfItem(userId, itemId)) {
+            throw new WrongDataException("Пользователь не брал вещь id=" + itemId + " в аренду");
+        }
         Comment comment = new Comment();
         comment.setItemId(itemId);
         comment.setAuthorId(userId);
-        comment.setAuthorName(userOptional.get().getName());
+        comment.setAuthorName(user.getName());
         comment.setText(commentDto.getText());
         comment.setCreated(LocalDateTime.now());
         commentDto = commentDtoMapper.mapToDto(commentRepository.save(comment));
@@ -225,9 +222,15 @@ public class ItemService {
 
     private void validateItemDto(ItemDto itemDto) throws WrongDataException {
         StringBuilder message = new StringBuilder();
-        if (itemDto.getDescription() == null || itemDto.getName().isBlank()) message.append("Не указано название. ");
-        if (itemDto.getDescription() == null || itemDto.getDescription().isBlank()) message.append("Нет описания вещи. ");
-        if (itemDto.getAvailable() == null) message.append("Не указана доступность вещи для заказа.");
+        if (itemDto.getDescription() == null || itemDto.getName().isBlank()) {
+            message.append("Не указано название. ");
+        }
+        if (itemDto.getDescription() == null || itemDto.getDescription().isBlank()) {
+            message.append("Нет описания вещи. ");
+        }
+        if (itemDto.getAvailable() == null) {
+            message.append("Не указана доступность вещи для заказа.");
+        }
         if (!message.toString().isBlank()) {
             log.warn("Ошибка валидации вещи: " + message.toString());
             throw new WrongDataException(message.toString());

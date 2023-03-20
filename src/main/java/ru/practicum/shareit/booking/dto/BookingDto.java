@@ -8,11 +8,11 @@ import ru.practicum.shareit.user.User;
 @Getter
 @Setter
 public class BookingDto {
-    Long id;
-    Item item;
-    User booker;
-    Long bookerId;
-    String start;
-    String end;
-    String status;
+    private Long id;
+    private Item item;
+    private User booker;
+    private Long bookerId;
+    private String start;
+    private String end;
+    private String status;
 }

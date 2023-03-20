@@ -14,5 +14,5 @@ public class CommentDto {
 
     private Long authorId;
     private String authorName;
-    String created;
+    private String created;
 }

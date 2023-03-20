@@ -32,11 +32,10 @@ public class UserService {
     }
 
     public UserDto getUserById(Long userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        }
-        User user = userOptional.get();
+        User userOptional = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
+        );
+        User user = userOptional;
         return userDtoMapper.mapUser(user);
     }
 
