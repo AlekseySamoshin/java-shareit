@@ -121,7 +121,9 @@ public class ItemService {
     }
 
     public CommentDto addNewComment(Long userId, Long itemId, CommentDto commentDto) {
-        if (commentDto.getText().isBlank()) throw new WrongDataException("Комментарий отсутствует");
+        if (commentDto.getText().isBlank()) {
+            throw new WrongDataException("Комментарий отсутствует");
+        }
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
         );
@@ -159,7 +161,9 @@ public class ItemService {
             item.setComments(new ArrayList<>());
         }
         List<Comment> comments = commentRepository.findAllForItems(idList);
-        if (comments.isEmpty()) return items;
+        if (comments.isEmpty()) {
+            return items;
+        }
         for (ItemDto item : items) {
             for (Comment comment : comments) {
                 if (comment.getItemId().equals(item.getId())) {
@@ -239,7 +243,9 @@ public class ItemService {
 
     private Boolean checkUserIsBookerOfItem(Long userId, Long itemId) {
         List<Booking> bookings = bookingRepository.findAllByUserId(userId);
-        if (bookings.isEmpty()) return false;
+        if (bookings.isEmpty()) {
+            return false;
+        }
         for (Booking booking : bookings) {
             if (booking.getItem().getId().equals(itemId) && booking.getStart().isBefore(LocalDateTime.now())) return true;
         }
