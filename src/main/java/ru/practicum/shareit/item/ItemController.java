@@ -1,16 +1,13 @@
-package ru.practicum.shareit.item.controller;
+package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping("/items")
 @Slf4j
@@ -34,7 +31,7 @@ public class ItemController {
             @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long itemId) {
         log.info("Запрос на получение вещи id=" + itemId);
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(itemId, userId);
     }
 
     @GetMapping("/search")
@@ -51,6 +48,14 @@ public class ItemController {
             @RequestBody ItemDto itemDto) {
         log.info("Запрос на добавление вещи пользователя id=" + userId);
         return itemService.addItem(userId, itemDto);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                               @PathVariable Long itemId,
+                               @RequestBody CommentDto commentDto) {
+
+    return itemService.addNewComment(userId, itemId, commentDto);
     }
 
     @PatchMapping("/{itemId}")

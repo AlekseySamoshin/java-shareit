@@ -1,16 +1,12 @@
-package ru.practicum.shareit.user.controller;
+package ru.practicum.shareit.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping(path = "/users")
 @Slf4j
@@ -37,7 +33,6 @@ public class UserController {
     @PostMapping
     public UserDto addUser(@RequestBody UserDto userDto) {
         log.info("Запрос на добавление нового пользователя");
-        userService.validateUserDto(userDto);
         return userService.addUser(userDto);
     }
 

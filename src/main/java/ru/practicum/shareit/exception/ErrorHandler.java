@@ -16,7 +16,7 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleWrongData(final WrongDataException e) {
         log.error("Ошибка: " + e.getMessage());
-        return Map.of("Ошибка: ", e.getMessage());
+        return Map.of("error", e.getMessage());
     }
 
     @ExceptionHandler

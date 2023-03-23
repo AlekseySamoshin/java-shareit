@@ -1,62 +1,65 @@
-package ru.practicum.shareit.user.service;
+package ru.practicum.shareit.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.ConflictException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.WrongDataException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserDtoMapper;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
     private final UserDtoMapper userDtoMapper;
 
     @Autowired
-    public UserService(@Qualifier("InMemoryUserStorage") UserStorage userStorage, UserDtoMapper userDtoMapper) {
-        this.userStorage = userStorage;
+    public UserService(UserRepository userRepository, UserDtoMapper userDtoMapper) {
+        this.userRepository = userRepository;
         this.userDtoMapper = userDtoMapper;
     }
 
     public List<UserDto> getUsers() {
-        return userStorage.getUsers().stream()
+        return userRepository.findAll().stream()
                 .map(userDtoMapper::mapUser)
                 .collect(Collectors.toList());
     }
 
     public UserDto getUserById(Long userId) {
-        return userDtoMapper.mapUser(userStorage.getUserById(userId));
+        User userOptional = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
+        );
+        User user = userOptional;
+        return userDtoMapper.mapUser(user);
     }
 
     public UserDto addUser(UserDto userDto) {
         User user = userDtoMapper.mapDto(userDto);
-        return userDtoMapper.mapUser(userStorage.addUser(user));
+        validateUserDto(userDto);
+        user = userRepository.save(user);
+        return userDtoMapper.mapUser(user);
     }
 
     public UserDto updateUser(Long userId, UserDto userDto) {
-        User user = userStorage.getUserById(userId);
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
+        }
+        User user = userOptional.get();
         if (userDto.getName() != null) {
             user.setName(userDto.getName());
         }
         if (userDto.getEmail() != null) {
-            if (userStorage.checkEmailIsAvailable(userId, userDto.getEmail()) == true) {
-                user.setEmail(userDto.getEmail());
-            } else {
-                String message = "Email " + userDto.getEmail() + " уже занят";
-                log.error(message);
-                throw new ConflictException(message);
-            }
+            user.setEmail(userDto.getEmail());
         }
-        return userDtoMapper.mapUser(userStorage.updateUser(user));
+        user = userRepository.save(user);
+        return userDtoMapper.mapUser(user);
     }
 
     public void validateUserDto(UserDto userDto) throws WrongDataException {
@@ -74,8 +77,8 @@ public class UserService {
     }
 
     public UserDto deleteUserById(Long userId) {
-        User user = userStorage.getUserById(userId);
-        userStorage.deleteUserById(userId);
-        return userDtoMapper.mapUser(user);
+        Optional<User> user = userRepository.findById(userId);
+        userRepository.deleteById(userId);
+        return userDtoMapper.mapUser(user.get());
     }
 }
