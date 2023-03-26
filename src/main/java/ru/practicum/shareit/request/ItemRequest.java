@@ -2,24 +2,27 @@ package ru.practicum.shareit.request;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import ru.practicum.shareit.item.Item;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Getter
 @Setter
+@ToString
+@Table(name = "requests", schema = "public")
 public class ItemRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long requesterId;
+    @Column(name = "requestor_id")
+    private Long requestorId;
     private String description;
+    @OneToMany
+    @JoinColumn(name = "item_id")
     private List<Item> items;
     private LocalDateTime created;
 }

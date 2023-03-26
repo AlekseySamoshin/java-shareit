@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/requests")
 @Slf4j
@@ -24,7 +26,20 @@ public class ItemRequestController {
     }
 
     @GetMapping
-    ItemRequestDto getAllRequestsOfUser(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId) {
+    List<ItemRequestDto> getAllRequestsOfUser(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId) {
         return requestService.getAllRequestsOfUser(userId);
+    }
+
+    @GetMapping(path = "/all")
+    List<ItemRequestDto> getAllRequests(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                                        @RequestParam(name = "from", required = false) Integer pageNum,
+                                        @RequestParam(name = "size", required = false) Integer pageSize) {
+        return requestService.getAllRequests(userId, pageNum, pageSize);
+    }
+
+    @GetMapping("/{requestId}")
+    ItemRequestDto getRequestById(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                                  @PathVariable Long requestId) {
+        return requestService.getRequestById(userId, requestId);
     }
 }
