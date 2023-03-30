@@ -18,11 +18,15 @@ public class ItemRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "requestor_id")
     private Long requestorId;
+
     private String description;
+
     @OneToMany
     @JoinColumn(name = "item_id")
     private List<Item> items;
+
     private LocalDateTime created;
 }

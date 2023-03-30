@@ -32,7 +32,7 @@ public class ItemController {
                                   @RequestParam(name = "size", required = false) Integer pageSize) {
         if (pageNum == null && pageSize == null) {
             log.info("Запрос на получение списка вещей");
-            return return itemService.getItemsByUserId(userId);
+            return itemService.getItemsByUserId(userId);
         }
         log.info("Запрос на получение списка вещей постранично");
         return itemService.getItemsByUserId(userId, pageNum, pageSize);

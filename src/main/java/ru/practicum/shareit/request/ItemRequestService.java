@@ -7,12 +7,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.WrongDataException;
+import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoMapper;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,6 +75,13 @@ public class ItemRequestService {
         return requestDtoMapper.toDto(requestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Запрос id=" + requestId + "не найден")));
     }
+
+//    private List<Item> findItemsForRequests (List<ItemRequest> itemRequests) {
+//        List<Long> idList = Collections.EMPTY_LIST;
+//        for (ItemRequest itemRequest : itemRequests) {
+//            idList.add(itemRequest.)
+//        }
+//    }
 
     private User getUserIfExists(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(

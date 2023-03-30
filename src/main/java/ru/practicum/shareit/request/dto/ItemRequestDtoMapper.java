@@ -13,6 +13,7 @@ public class ItemRequestDtoMapper {
         request.setDescription(dto.getDescription());
         request.setRequestorId(dto.getRequestorId());
         request.setCreated(LocalDateTime.parse(dto.getCreated()));
+        request.setItems(dto.getItems());
         return request;
     }
 
@@ -22,6 +23,7 @@ public class ItemRequestDtoMapper {
         dto.setDescription(request.getDescription());
         dto.setRequestorId(request.getRequestorId());
         dto.setCreated(request.getCreated().toString());
+        dto.setItems(request.getItems());
         return dto;
     }
 }

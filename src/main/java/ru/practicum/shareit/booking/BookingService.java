@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoMapper;
@@ -77,12 +79,19 @@ public class BookingService {
         return bookingDtoMapper.toDto(booking);
     }
 
-    public List<BookingDto> getBookingsOfUser(Long userId, String state) {
+    public List<BookingDto> getBookingsOfUser(Long userId, String state, Integer pageNum, Integer pageSize) {
         if (state == null) {
             state = "ALL";
         }
         findUserByIdIfExists(userId);
-        List<Booking> bookings = findBookigsWithState(userId, state);
+        if (pageNum == null && pageSize == null) {
+            List<Booking> bookings = findBookigsWithState(userId, state);
+            return bookings.stream()
+                    .map(bookingDtoMapper::toDto)
+                    .collect(Collectors.toList());
+        }
+        Pageable page = PageRequest.of(pageNum, pageSize);
+        List<Booking> bookings = findBookigsWithStatePageable(userId, state, page);
         return bookings.stream()
                 .map(bookingDtoMapper::toDto)
                 .collect(Collectors.toList());
@@ -173,6 +182,25 @@ public class BookingService {
         }
     }
 
+    private List<Booking> findBookigsWithStatePageable(Long userId, String state, Pageable page) {
+        switch (state.toUpperCase()) {
+            case "ALL":
+                return bookingRepository.findAllByUserId(userId, page);
+            case "CURRENT":
+                return bookingRepository.findAllCurrentByUserId(userId, page);
+            case "PAST":
+                return bookingRepository.findAllPastByUserId(userId, page);
+            case "FUTURE":
+                return bookingRepository.findAllFutureByUserId(userId, page);
+            case "WAITING":
+                return bookingRepository.findAllWaitingByUserId(userId, page);
+            case "REJECTED":
+                return bookingRepository.findAllRejectedByUserId(userId, page);
+            default:
+                throw new WrongDataException("Unknown state: UNSUPPORTED_STATUS");
+        }
+    }
+
     private List<Booking> findBookingsOfItemsWithState(List<Long> itemIds, String state) {
         if (state == null) {
             state = "ALL";
@@ -194,4 +222,8 @@ public class BookingService {
                 throw new WrongDataException("Unknown state: UNSUPPORTED_STATUS");
         }
     }
+
+//    public List<BookingDto> getBookingsOfUserPageable(Long userId, String state, Integer pageNum, Integer pageSize) {
+//
+//    }
 }
