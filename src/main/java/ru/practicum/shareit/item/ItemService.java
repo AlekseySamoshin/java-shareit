@@ -14,6 +14,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentDtoMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoMapper;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
@@ -71,14 +72,18 @@ public class ItemService {
     }
 
     public ItemDto addItem(Long userId, ItemDto itemDto) {
+        ItemRequest itemRequest = null;
         validateItemDto(itemDto);
         User user = getUserIfExists(userId);
         itemDto.setOwnerId(userId);
+        Item item = itemRepository.save(itemDtoMapper.mapToItem(itemDto));
         if (itemDto.getRequestId() != null) {
-            requestRepository.findById(itemDto.getRequestId())
+            itemRequest = requestRepository.findById(itemDto.getRequestId())
                     .orElseThrow(() -> new NotFoundException("Запрос id=" + itemDto.getRequestId() + " не найден"));
+            itemRequest.getItems().add(item);
+            requestRepository.save(itemRequest);
         }
-        return itemDtoMapper.mapToDto(itemRepository.save(itemDtoMapper.mapToItem(itemDto)));
+            return itemDtoMapper.mapToDto(item);
     }
 
     public ItemDto getItemById(Long itemId, Long userId) throws NotFoundException {

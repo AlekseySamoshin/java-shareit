@@ -56,6 +56,7 @@ public class ItemRequestService {
                     .map(requestDtoMapper::toDto)
                     .collect(Collectors.toList());
         }
+        validatePagesRequest(pageNum, pageSize);
         if (pageNum.intValue() < 0 || pageSize.intValue() <= 0) {
             throw new WrongDataException("Ошибка: неправильный размер или номер страницы");
         }
@@ -65,16 +66,18 @@ public class ItemRequestService {
                 .collect(Collectors.toList());
     }
 
+
 //    public List<ItemRequestDto> getAllRequests(Long userId) {
 //        return requestRepository.findAll().stream()
 //                .map(requestDtoMapper::toDto)
 //                .collect(Collectors.toList());
 //    }
-
     public ItemRequestDto getRequestById(Long userId, Long requestId) {
+        getUserIfExists(userId);
         return requestDtoMapper.toDto(requestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Запрос id=" + requestId + "не найден")));
     }
+
 
 //    private List<Item> findItemsForRequests (List<ItemRequest> itemRequests) {
 //        List<Long> idList = Collections.EMPTY_LIST;
@@ -82,11 +85,16 @@ public class ItemRequestService {
 //            idList.add(itemRequest.)
 //        }
 //    }
-
     private User getUserIfExists(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
         return user;
+    }
+
+    private void validatePagesRequest(Integer pageNum, Integer pageSize) {
+        if (pageNum <= 0 || pageSize <= 0) {
+            throw new WrongDataException("Ошибка: неыерно указан начальный индекс или размер страницы");
+        }
     }
 
     private void validateItemRequestDto(ItemRequestDto requestDto) {

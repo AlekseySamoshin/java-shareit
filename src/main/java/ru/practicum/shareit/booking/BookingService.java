@@ -90,6 +90,7 @@ public class BookingService {
                     .map(bookingDtoMapper::toDto)
                     .collect(Collectors.toList());
         }
+        validatePagesRequest(pageNum, pageSize);
         Pageable page = PageRequest.of(pageNum, pageSize);
         List<Booking> bookings = findBookigsWithStatePageable(userId, state, page);
         return bookings.stream()
@@ -160,6 +161,12 @@ public class BookingService {
         }
         if (booking.getEnd().isBefore(currentDateTime)) {
             throw new WrongDataException("Дата окончания аренды уже прошла");
+        }
+    }
+
+    private void validatePagesRequest(Integer pageNum, Integer pageSize) {
+        if (pageNum <= 0 || pageSize <= 0) {
+            throw new WrongDataException("Ошибка: неыерно указан начальный индекс или размер страницы");
         }
     }
 
