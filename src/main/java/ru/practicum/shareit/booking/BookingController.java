@@ -2,12 +2,10 @@ package ru.practicum.shareit.booking;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @RestController
@@ -40,17 +38,19 @@ public class BookingController {
     @GetMapping()
     public List<BookingDto> getBookingsOfUser(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
                                               @RequestParam(required = false) String state,
-                                              @RequestParam(name = "from", required = false) Integer pageNum,
+                                              @RequestParam(name = "from", required = false) Integer from,
                                               @RequestParam(name = "size", required = false) Integer pageSize) {
         log.info("Запрос на получение заявок на аренду пользователя id=" + userId);
-        return bookingService.getBookingsOfUser(userId, state, pageNum, pageSize);
+        return bookingService.getBookingsOfUser(userId, state, from, pageSize);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getBookingsOfOwnersItems(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
-                                                     @RequestParam(required = false) String state) {
+                                                     @RequestParam(required = false) String state,
+                                                     @RequestParam(name = "from", required = false) Integer pageNum,
+                                                     @RequestParam(name = "size", required = false) Integer pageSize) {
         log.info("Запрос на получение заявок на аренду всех вещей пользователя id=" + userId);
-        return bookingService.getBookingsOfOwnerItems(userId, state);
+        return bookingService.getBookingsOfOwnerItems(userId, state, pageNum, pageSize);
     }
 
     @GetMapping("/{bookingId}")

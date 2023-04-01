@@ -79,26 +79,27 @@ public class BookingService {
         return bookingDtoMapper.toDto(booking);
     }
 
-    public List<BookingDto> getBookingsOfUser(Long userId, String state, Integer pageNum, Integer pageSize) {
+    public List<BookingDto> getBookingsOfUser(Long userId, String state, Integer from, Integer pageSize) {
         if (state == null) {
             state = "ALL";
         }
         findUserByIdIfExists(userId);
-        if (pageNum == null && pageSize == null) {
+        if (from == null || pageSize == null) {
             List<Booking> bookings = findBookigsWithState(userId, state);
             return bookings.stream()
                     .map(bookingDtoMapper::toDto)
                     .collect(Collectors.toList());
         }
-        validatePagesRequest(pageNum, pageSize);
-        Pageable page = PageRequest.of(pageNum, pageSize);
+        validatePagesRequest(from, pageSize);
+        Integer pageNum = from / pageSize;
+        PageRequest page = PageRequest.of(pageNum, pageSize);
         List<Booking> bookings = findBookigsWithStatePageable(userId, state, page);
         return bookings.stream()
                 .map(bookingDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 
-    public List<BookingDto> getBookingsOfOwnerItems(Long ownerId, String state) {
+    public List<BookingDto> getBookingsOfOwnerItems(Long ownerId, String state, Integer pageNum, Integer pageSize) {
         findUserByIdIfExists(ownerId);
         List<Long> itemIds = itemRepository.findAllByOwnerId(ownerId).stream()
                 .map(Item::getId)
@@ -106,7 +107,14 @@ public class BookingService {
         if (itemIds.isEmpty()) {
             throw new NotFoundException("У пользователя id=" + ownerId + " не найдено вещей");
         }
-        List<Booking> bookings = findBookingsOfItemsWithState(itemIds, state);
+        List<Booking> bookings = null;
+        if (pageNum == null || pageSize == null) {
+            bookings = findBookingsOfItemsWithState(itemIds, state);
+        } else {
+            validatePagesRequest(pageNum, pageSize);
+            bookings = findBookingsOfItemsWithState(itemIds, state, PageRequest.of(pageNum, pageSize));
+        }
+
         return bookings.stream()
                 .map(bookingDtoMapper::toDto)
                 .collect(Collectors.toList());
@@ -230,7 +238,26 @@ public class BookingService {
         }
     }
 
-//    public List<BookingDto> getBookingsOfUserPageable(Long userId, String state, Integer pageNum, Integer pageSize) {
-//
-//    }
+    private List<Booking> findBookingsOfItemsWithState(List<Long> itemIds, String state, Pageable page) {
+        if (state == null) {
+            state = "ALL";
+        }
+        switch (state.toUpperCase()) {
+            case "ALL":
+                return bookingRepository.findAllBookingsForItems(itemIds, page);
+            case "CURRENT":
+                return bookingRepository.findCurrentBookingsForItems(itemIds, page);
+            case "PAST":
+                return bookingRepository.findPastBookingsForItems(itemIds, page);
+            case "FUTURE":
+                return bookingRepository.findFutureBookingsForItems(itemIds, page);
+            case "WAITING":
+                return bookingRepository.findWaititngBookingsForItems(itemIds, page);
+            case "REJECTED":
+                return bookingRepository.findRejectedBookingsForItems(itemIds, page);
+            default:
+                throw new WrongDataException("Unknown state: UNSUPPORTED_STATUS");
+        }
+
+    }
 }

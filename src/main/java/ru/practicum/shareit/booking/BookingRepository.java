@@ -73,10 +73,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, Booking
     @Query("select b from Booking b where b.item.id in (?1) order by b.end desc")
     List<Booking> findAllBookingsForItems(List<Long> itemIds);
 
+    @Query("select b from Booking b where b.item.id in (?1) order by b.end desc")
+    List<Booking> findAllBookingsForItems(List<Long> itemIds, Pageable pageable);
+
     @Query("select b from Booking b where b.item.id in (?1)" +
             "and (b.start < current_timestamp and b.end > current_timestamp) " +
             "order by b.start desc")
     List<Booking> findCurrentBookingsForItems(List<Long> itemIds);
+
+    @Query("select b from Booking b where b.item.id in (?1)" +
+            "and (b.start < current_timestamp and b.end > current_timestamp) " +
+            "order by b.start desc")
+    List<Booking> findCurrentBookingsForItems(List<Long> itemIds, Pageable pageable);
 
     @Query("select b from Booking b where b.item.id in (?1)" +
             "and (b.start < current_timestamp and b.end < current_timestamp) " +
@@ -84,15 +92,31 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, Booking
     List<Booking> findPastBookingsForItems(List<Long> itemIds);
 
     @Query("select b from Booking b where b.item.id in (?1)" +
+            "and (b.start < current_timestamp and b.end < current_timestamp) " +
+            "order by b.start desc")
+    List<Booking> findPastBookingsForItems(List<Long> itemIds, Pageable pageable);
+
+    @Query("select b from Booking b where b.item.id in (?1)" +
             "and (b.start > current_timestamp and b.end > current_timestamp) " +
             "order by b.start desc")
     List<Booking> findFutureBookingsForItems(List<Long> itemIds);
 
+    @Query("select b from Booking b where b.item.id in (?1)" +
+            "and (b.start > current_timestamp and b.end > current_timestamp) " +
+            "order by b.start desc")
+    List<Booking> findFutureBookingsForItems(List<Long> itemIds, Pageable pageable);
+
     @Query("select b from Booking b where b.item.id in (?1) and b.status = 'WAITING' order by b.end desc")
     List<Booking> findWaititngBookingsForItems(List<Long> itemIds);
 
+    @Query("select b from Booking b where b.item.id in (?1) and b.status = 'WAITING' order by b.end desc")
+    List<Booking> findWaititngBookingsForItems(List<Long> itemIds, Pageable pageable);
+
     @Query("select b from Booking b where b.item.id in (?1) and b.status = 'REJECTED' order by b.end desc")
     List<Booking> findRejectedBookingsForItems(List<Long> itemIds);
+
+    @Query("select b from Booking b where b.item.id in (?1) and b.status = 'REJECTED' order by b.end desc")
+    List<Booking> findRejectedBookingsForItems(List<Long> itemIds, Pageable pageable);
 
     @Query(value = "select * from bookings b " +
             "where b.item_id = ?1 and start_date > current_timestamp " +

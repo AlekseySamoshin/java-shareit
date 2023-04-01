@@ -3,18 +3,15 @@ package ru.practicum.shareit.request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.WrongDataException;
-import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoMapper;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,41 +47,26 @@ public class ItemRequestService {
 
     public List<ItemRequestDto> getAllRequests(Long userId, Integer pageNum, Integer pageSize) {
         getUserIfExists(userId);
-        Sort sortByDate = Sort.by(Sort.Direction.DESC, "created");
-        if (pageNum == null && pageSize == null) {
+        if (pageNum == null || pageSize == null) {
             return requestRepository.findAll().stream()
+                    .filter(itemRequest -> !itemRequest.getRequestorId().equals(userId))
                     .map(requestDtoMapper::toDto)
                     .collect(Collectors.toList());
         }
         validatePagesRequest(pageNum, pageSize);
-        if (pageNum.intValue() < 0 || pageSize.intValue() <= 0) {
-            throw new WrongDataException("Ошибка: неправильный размер или номер страницы");
-        }
-        Pageable page = PageRequest.of(pageNum, pageSize, sortByDate);
+        Pageable page = PageRequest.of(pageNum, pageSize);
         return requestRepository.findAll(page).stream()
+                .filter(itemRequest -> !itemRequest.getRequestorId().equals(userId))
                 .map(requestDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 
-
-//    public List<ItemRequestDto> getAllRequests(Long userId) {
-//        return requestRepository.findAll().stream()
-//                .map(requestDtoMapper::toDto)
-//                .collect(Collectors.toList());
-//    }
     public ItemRequestDto getRequestById(Long userId, Long requestId) {
         getUserIfExists(userId);
         return requestDtoMapper.toDto(requestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Запрос id=" + requestId + "не найден")));
     }
 
-
-//    private List<Item> findItemsForRequests (List<ItemRequest> itemRequests) {
-//        List<Long> idList = Collections.EMPTY_LIST;
-//        for (ItemRequest itemRequest : itemRequests) {
-//            idList.add(itemRequest.)
-//        }
-//    }
     private User getUserIfExists(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
@@ -92,7 +74,7 @@ public class ItemRequestService {
     }
 
     private void validatePagesRequest(Integer pageNum, Integer pageSize) {
-        if (pageNum <= 0 || pageSize <= 0) {
+        if (pageNum < 0 || pageSize <= 0) {
             throw new WrongDataException("Ошибка: неыерно указан начальный индекс или размер страницы");
         }
     }
