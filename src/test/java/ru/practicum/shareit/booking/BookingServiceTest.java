@@ -59,7 +59,6 @@ class BookingServiceTest {
     void setUp() {
         LocalDateTime now = LocalDateTime.now();
         futureBooking.setId(1L);
-//        futureBooking.setStatus(BookingStatus.APPROVED);
         futureBooking.setBooker(booker);
         futureBooking.setItem(item1);
         futureBooking.setStart(now.plus(1, ChronoUnit.DAYS));
@@ -73,7 +72,6 @@ class BookingServiceTest {
         currentBooking.setEnd(now.plus(1, ChronoUnit.DAYS));
 
         futureBookingDto.setId(1L);
-//        futureBookingDto.setStatus(BookingStatus.APPROVED.toString());
         futureBookingDto.setBooker(booker);
         futureBookingDto.setItem(item1);
         futureBookingDto.setStart(now.plus(1, ChronoUnit.DAYS).toString());
@@ -85,8 +83,6 @@ class BookingServiceTest {
         currentBookingDto.setItem(item1);
         currentBookingDto.setStart(now.minus(1, ChronoUnit.DAYS).toString());
         currentBookingDto.setEnd(now.plus(1, ChronoUnit.DAYS).toString());
-//        bookingShortDto.setId(1L);
-//        bookingShortDto.setStatus(BookingStatus.APPROVED);
         futureBookingShortDto.setItemId(1L);
         futureBookingShortDto.setStart(now.plus(1, ChronoUnit.DAYS).toString());
         futureBookingShortDto.setEnd(now.plus(2, ChronoUnit.DAYS).toString());
