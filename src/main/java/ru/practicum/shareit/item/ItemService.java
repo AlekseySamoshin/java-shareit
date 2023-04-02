@@ -62,7 +62,6 @@ public class ItemService {
 
     public List<ItemDto> getItemsByUserId(Long userId, Integer pageNum, Integer pageSize) {
         getUserIfExists(userId);
-//        Sort sortByDate = Sort.by(Sort.Direction.DESC, "created");
         Pageable page = PageRequest.of(pageNum, pageSize);//, sortByDate);
         List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId, page).stream()
                 .map(itemDtoMapper::mapToDto)

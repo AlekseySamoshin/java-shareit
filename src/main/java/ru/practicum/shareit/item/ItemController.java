@@ -20,12 +20,6 @@ public class ItemController {
         this.itemService = itemService;
     }
 
-//    @GetMapping
-//    public List<ItemDto> getItems(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId) {
-//        log.info("Запрос на получение списка вещей");
-//        return itemService.getItemsByUserId(userId);
-//    }
-
     @GetMapping
     public List<ItemDto> getItems(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
                                   @RequestParam(name = "from", required = false) Integer pageNum,

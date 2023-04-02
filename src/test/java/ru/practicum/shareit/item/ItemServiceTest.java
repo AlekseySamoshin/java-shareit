@@ -11,6 +11,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoMapper;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.WrongDataException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentDtoMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -126,13 +129,23 @@ class ItemServiceTest {
 
     @Test
     void addItem() {
-        when(userRepository.findById(any())).thenReturn(Optional.of(owner));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
         when(itemRepository.save(any())).thenReturn(item1);
         when(itemDtoMapper.mapToDto(any())).then(Mockito.CALLS_REAL_METHODS);
         when(itemDtoMapper.mapToItem(any())).then(Mockito.CALLS_REAL_METHODS);
         ItemDto testItemDto = itemService.addItem(owner.getId(), itemDto);
         assertEquals(item1.getId(), testItemDto.getId());
         assertEquals(item1.getDescription(), testItemDto.getDescription());
+
+        assertThrows(NotFoundException.class, () -> itemService.addItem(99L, itemDto));
+
+        itemDto.setName("");
+        assertThrows(WrongDataException.class, () -> itemService.addItem(owner.getId(), itemDto));
+
+        itemDto.setName("newName");
+        itemDto.setDescription("");
+        assertThrows(WrongDataException.class, () -> itemService.addItem(owner.getId(), itemDto));
+
     }
 
     @Test
@@ -172,6 +185,8 @@ class ItemServiceTest {
         List<ItemDto> itemDtoList2 = itemService.searchItemsByText(owner.getId(), item2.getDescription(), 1, 10);
         assertEquals(item1.getDescription(), itemDtoList1.get(0).getDescription());
         assertEquals(item2.getName(), itemDtoList2.get(0).getName());
+        List<ItemDto> itemDtoListWithEmptyTextRequest = itemService.searchItemsByText(owner.getId(), "", null, null);
+        assertEquals(0, itemDtoListWithEmptyTextRequest.size());
 
     }
 
