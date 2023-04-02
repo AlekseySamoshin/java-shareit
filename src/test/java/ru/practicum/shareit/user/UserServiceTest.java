@@ -13,17 +13,14 @@ import ru.practicum.shareit.user.dto.UserDtoMapper;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @ExtendWith(SpringExtension.class)
 class UserServiceTest {
-
-    @Mock
-    WrongDataException wrongDataException;
 
     @Mock
     UserRepository userRepository;
@@ -40,7 +37,7 @@ class UserServiceTest {
     private UserDto userDto2;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         user1 = new User();
         user2 = new User();
         userDto1 = new UserDto();
