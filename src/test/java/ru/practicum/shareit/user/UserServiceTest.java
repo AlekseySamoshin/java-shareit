@@ -52,8 +52,8 @@ class UserServiceTest {
         userDto1.setName("userName1");
         userDto1.setEmail("user1@email.com");
         userDto2.setId(2L);
-        userDto2.setName("userName2");
-        userDto2.setEmail("user1@email.com");
+        userDto2.setName("");
+        userDto2.setEmail("email.com");
     }
 
     @Test
@@ -86,6 +86,10 @@ class UserServiceTest {
         assertEquals(testUser.getId(), userDto1.getId());
         assertEquals(testUser.getName(), user1.getName());
         assertEquals(testUser.getEmail(), user1.getEmail());
+
+        Exception exception = assertThrows(WrongDataException.class,
+                () -> userService.addUser(userDto2));
+        assertEquals("Не указан email! Не указан логин! ", exception.getMessage());
     }
 
     @Test

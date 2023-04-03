@@ -174,7 +174,7 @@ public class BookingService {
 
     private void validatePagesRequest(Integer pageNum, Integer pageSize) {
         if (pageNum <= 0 || pageSize <= 0) {
-            throw new WrongDataException("Ошибка: неыерно указан начальный индекс или размер страницы");
+            throw new WrongDataException("Ошибка: неверно указан начальный индекс или размер страницы");
         }
     }
 

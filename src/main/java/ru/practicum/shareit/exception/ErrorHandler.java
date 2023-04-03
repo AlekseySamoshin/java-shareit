@@ -25,12 +25,5 @@ public class ErrorHandler {
         log.error("Ошибка: " + e.getMessage());
         return Map.of("Ошибка: ", e.getMessage());
     }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handleConflict(final ConflictException e) {
-        log.error("Ошибка: " + e.getMessage());
-        return Map.of("Ошибка:", e.getMessage());
-    }
 }
 

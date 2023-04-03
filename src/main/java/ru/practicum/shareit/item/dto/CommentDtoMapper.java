@@ -17,15 +17,4 @@ public class CommentDtoMapper {
         dto.setCreated(comment.getCreated().toString());
         return dto;
     }
-
-    public Comment mapToComment(CommentDto dto) {
-        Comment comment = new Comment();
-        comment.setId(dto.getId());
-        comment.setItemId(dto.getItemId());
-        comment.setAuthorId(dto.getAuthorId());
-        comment.setAuthorName(dto.getAuthorName());
-        comment.setText(dto.getText());
-        comment.setCreated(LocalDateTime.parse(dto.getCreated()));
-        return comment;
-    }
 }
