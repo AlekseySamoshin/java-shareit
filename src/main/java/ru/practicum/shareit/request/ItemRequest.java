@@ -2,7 +2,6 @@ package ru.practicum.shareit.request;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import ru.practicum.shareit.item.Item;
 
 import javax.persistence.*;
@@ -12,7 +11,6 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@ToString
 @Table(name = "requests", schema = "public")
 public class ItemRequest {
     @Id

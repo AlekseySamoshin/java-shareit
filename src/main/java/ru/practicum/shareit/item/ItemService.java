@@ -1,7 +1,7 @@
 package ru.practicum.shareit.item;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ItemService {
 
     private final ItemRepository itemRepository;
@@ -36,44 +37,18 @@ public class ItemService {
     private final BookingDtoMapper bookingDtoMapper;
     private final CommentDtoMapper commentDtoMapper;
 
-    @Autowired
-    public ItemService(ItemRepository itemRepository, UserRepository userRepository,
-                       ItemDtoMapper itemDtoMapper, BookingRepository bookingRepository,
-                       BookingDtoMapper bookingDtoMapper, CommentRepository commentRepository,
-                       ItemRequestRepository requestRepository, CommentDtoMapper commentDtoMapper) {
-        this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
-        this.itemDtoMapper = itemDtoMapper;
-        this.bookingRepository = bookingRepository;
-        this.bookingDtoMapper = bookingDtoMapper;
-        this.commentRepository = commentRepository;
-        this.requestRepository = requestRepository;
-        this.commentDtoMapper = commentDtoMapper;
-    }
-
-    public List<ItemDto> getItemsByUserId(Long userId) {
-        User user = getUserIfExists(userId);
-        List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId).stream()
-                .map(itemDtoMapper::mapToDto)
-                .collect(Collectors.toList());
-        findCommentsForItems(itemDtos);
-        return findLastAndNextBookings(itemDtos, userId);
-    }
-
     public List<ItemDto> getItemsByUserId(Long userId, Integer pageNum, Integer pageSize) {
         getUserIfExists(userId);
-        Pageable page = PageRequest.of(pageNum, pageSize);
-        List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId, page).stream()
-                .map(itemDtoMapper::mapToDto)
-                .collect(Collectors.toList());
-        findCommentsForItems(itemDtos);
-        return findLastAndNextBookings(itemDtos, userId);
+        if (pageNum == null && pageSize == null) {
+            return getItemsByUserIdWithoutPaging(userId);
+        }
+        return getItemsByUserIdWithPaging(userId, pageNum, pageSize);
     }
 
     public ItemDto addItem(Long userId, ItemDto itemDto) {
-        ItemRequest itemRequest = null;
+        ItemRequest itemRequest;
         validateItemDto(itemDto);
-        User user = getUserIfExists(userId);
+        getUserIfExists(userId);
         itemDto.setOwnerId(userId);
         Item item = itemRepository.save(itemDtoMapper.mapToItem(itemDto));
         if (itemDto.getRequestId() != null) {
@@ -98,7 +73,7 @@ public class ItemService {
     }
 
     public ItemDto getItemByIdAndOwnerId(Long userId, Long itemId) {
-        User user = getUserIfExists(userId);
+        getUserIfExists(userId);
         Item itemOptional = itemRepository.findByIdAndOwnerId(userId, itemId).orElseThrow(
                 () -> new NotFoundException("Вещь с id=" + itemId + " не найдена у пользователя id=" + userId)
         );
@@ -115,8 +90,7 @@ public class ItemService {
         if (pageNum == null && pageSize == null) {
             items = itemRepository.findByText(text.toLowerCase());
         } else {
-            Pageable page = PageRequest.of(pageNum, pageSize);
-            items = itemRepository.findByTextPageable(text.toLowerCase(), page);
+            items = itemRepository.findByTextPageable(text.toLowerCase(), PageRequest.of(pageNum, pageSize));
         }
         List<ItemDto> result = items.stream()
                 .map(itemDtoMapper::mapToDto)
@@ -151,7 +125,7 @@ public class ItemService {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
         );
-        Item item = itemRepository.findById(itemId).orElseThrow(
+        itemRepository.findById(itemId).orElseThrow(
                 () -> new NotFoundException("Вещь id=" + itemId + " не найдена")
         );
         if (!checkUserIsBookerOfItem(userId, itemId)) {
@@ -165,6 +139,23 @@ public class ItemService {
         comment.setCreated(LocalDateTime.now());
         commentDto = commentDtoMapper.mapToDto(commentRepository.save(comment));
         return commentDto;
+    }
+
+    private List<ItemDto> getItemsByUserIdWithoutPaging(Long userId) {
+        List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId).stream()
+                .map(itemDtoMapper::mapToDto)
+                .collect(Collectors.toList());
+        findCommentsForItems(itemDtos);
+        return findLastAndNextBookings(itemDtos, userId);
+    }
+
+    private List<ItemDto> getItemsByUserIdWithPaging(Long userId, Integer pageNum, Integer pageSize) {
+        Pageable page = PageRequest.of(pageNum, pageSize);
+        List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId, page).stream()
+                .map(itemDtoMapper::mapToDto)
+                .collect(Collectors.toList());
+        findCommentsForItems(itemDtos);
+        return findLastAndNextBookings(itemDtos, userId);
     }
 
     private User getUserIfExists(Long userId) {
@@ -240,12 +231,8 @@ public class ItemService {
         if (itemDto.getOwnerId().equals(userId)) {
             Optional<Booking> nextBooking = bookingRepository.findNextBookingForItem(itemDto.getId());
             Optional<Booking> lastBooking = bookingRepository.findLastBookingForItem(itemDto.getId());
-            if (nextBooking.isPresent()) {
-                itemDto.setNextBooking(bookingDtoMapper.toDto(nextBooking.get()));
-            }
-            if (lastBooking.isPresent()) {
-                itemDto.setLastBooking(bookingDtoMapper.toDto(lastBooking.get()));
-            }
+            nextBooking.ifPresent(booking -> itemDto.setNextBooking(bookingDtoMapper.toDto(booking)));
+            lastBooking.ifPresent(booking -> itemDto.setLastBooking(bookingDtoMapper.toDto(booking)));
             return itemDto;
         }
         itemDto.setLastBooking(null);
@@ -265,7 +252,7 @@ public class ItemService {
             message.append("Не указана доступность вещи для заказа.");
         }
         if (!message.toString().isBlank()) {
-            log.warn("Ошибка валидации вещи: " + message.toString());
+            log.warn("Ошибка валидации вещи: " + message);
             throw new WrongDataException(message.toString());
         }
     }

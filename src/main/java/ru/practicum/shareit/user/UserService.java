@@ -77,8 +77,10 @@ public class UserService {
     }
 
     public UserDto deleteUserById(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
+        );
         userRepository.deleteById(userId);
-        return userDtoMapper.mapUser(user.get());
+        return userDtoMapper.mapUser(user);
     }
 }

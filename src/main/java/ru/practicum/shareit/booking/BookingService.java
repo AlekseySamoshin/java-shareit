@@ -1,6 +1,6 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,26 +15,16 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final BookingDtoMapper bookingDtoMapper;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-
-    @Autowired
-    public BookingService(BookingRepository bookingRepository,
-                          BookingDtoMapper bookingDtoMapper,
-                          ItemRepository itemRepository,
-                          UserRepository userRepository) {
-        this.bookingRepository = bookingRepository;
-        this.bookingDtoMapper = bookingDtoMapper;
-        this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
-    }
 
     public BookingDto addBooking(Long userId, BookingShortDto bookingShortDto) {
         validateBookingDto(bookingShortDto);
@@ -91,9 +81,7 @@ public class BookingService {
                     .collect(Collectors.toList());
         }
         validatePagesRequest(from, pageSize);
-        Integer pageNum = from / pageSize;
-        PageRequest page = PageRequest.of(pageNum, pageSize);
-        List<Booking> bookings = findBookigsWithStatePageable(userId, state, page);
+        List<Booking> bookings = findBookigsWithStatePageable(userId, state, PageRequest.of(from / pageSize, pageSize));
         return bookings.stream()
                 .map(bookingDtoMapper::toDto)
                 .collect(Collectors.toList());
@@ -107,7 +95,7 @@ public class BookingService {
         if (itemIds.isEmpty()) {
             throw new NotFoundException("У пользователя id=" + ownerId + " не найдено вещей");
         }
-        List<Booking> bookings = null;
+        List<Booking> bookings;
         if (pageNum == null || pageSize == null) {
             bookings = findBookingsOfItemsWithState(itemIds, state);
         } else {
@@ -121,9 +109,8 @@ public class BookingService {
     }
 
     private User findUserByIdIfExists(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
+        return userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-        return user;
     }
 
     private void setBookingStatus(Long userId, Booking booking, Boolean approved) {
@@ -138,9 +125,8 @@ public class BookingService {
     }
 
     private Booking findBookingById(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(
+        return bookingRepository.findById(bookingId).orElseThrow(
                 () -> new NotFoundException("Бронирование id=" + bookingId + "не найдено!"));
-        return booking;
     }
 
     private void validateBookingDto(BookingShortDto bookingShortDto) {
@@ -155,7 +141,7 @@ public class BookingService {
             message.append("Не указана дата окончания бронирования! ");
         }
         if (!message.toString().isBlank()) {
-            throw new WrongDataException("Ошибка валидации бронирования: " + message.toString());
+            throw new WrongDataException("Ошибка валидации бронирования: " + message);
         }
     }
 

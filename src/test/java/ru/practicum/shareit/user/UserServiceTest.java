@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.WrongDataException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserDtoMapper;
@@ -15,9 +16,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 class UserServiceTest {
@@ -65,12 +65,16 @@ class UserServiceTest {
         assertEquals(testList.get(0).getId(), users.get(0).getId());
     }
 
+    @Test
+    void getUserByWrongId() {
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.getUserById(99L));
+        assertEquals("Пользователь с id=99 не найден", exception.getMessage());
+    }
 
     @Test
     void getUserById() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
         when(userDtoMapper.mapUser(any())).thenReturn(userDto1);
-
         UserDto testUser = userService.getUserById(1L);
         assertEquals(testUser.getId(), user1.getId());
         assertEquals(testUser.getName(), user1.getName());
@@ -81,12 +85,10 @@ class UserServiceTest {
     void addUser() {
         when(userRepository.save(any())).thenReturn(user1);
         when(userDtoMapper.mapUser(any())).thenReturn(userDto1);
-
         UserDto testUser = userService.addUser(userDto1);
         assertEquals(testUser.getId(), userDto1.getId());
         assertEquals(testUser.getName(), user1.getName());
         assertEquals(testUser.getEmail(), user1.getEmail());
-
         Exception exception = assertThrows(WrongDataException.class,
                 () -> userService.addUser(userDto2));
         assertEquals("Не указан email! Не указан логин! ", exception.getMessage());
@@ -97,7 +99,6 @@ class UserServiceTest {
         userDto1.setName("");
         when(userRepository.save(any())).thenReturn(user1);
         when(userDtoMapper.mapUser(any())).thenReturn(userDto1);
-
         assertThrows(WrongDataException.class, () -> userService.addUser(userDto1));
     }
 
@@ -106,10 +107,28 @@ class UserServiceTest {
         when(userRepository.save(any())).thenReturn(user1);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
         when(userDtoMapper.mapUser(any())).thenReturn(userDto1);
-
         UserDto testUser = userService.updateUser(1L, userDto1);
         assertEquals(testUser.getId(), userDto1.getId());
         assertEquals(testUser.getName(), user1.getName());
         assertEquals(testUser.getEmail(), user1.getEmail());
+    }
+
+    @Test
+    void updateUserWrongId() {
+        Exception exception = assertThrows(NotFoundException.class, () -> userService.updateUser(99L, userDto1));
+        assertEquals("Пользователь с id=99 не найден", exception.getMessage());
+    }
+
+    @Test
+    void deleteUser() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user1));
+        doThrow(new NotFoundException("deleted")).when(userRepository).deleteById(anyLong());
+        when(userDtoMapper.mapUser(any())).thenReturn(userDto1);
+        assertThrows(NotFoundException.class, () -> userService.deleteUserById(1L));
+    }
+
+    @Test
+    void deleteUserWrongId() {
+        assertThrows(NotFoundException.class, () -> userService.deleteUserById(1L));
     }
 }

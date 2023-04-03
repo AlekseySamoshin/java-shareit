@@ -35,7 +35,7 @@ public class BookingController {
         return bookingService.updateBooking(bookingId, userId, approved);
     }
 
-    @GetMapping()
+    @GetMapping
     public List<BookingDto> getBookingsOfUser(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
                                               @RequestParam(required = false) String state,
                                               @RequestParam(name = "from", required = false) Integer from,
