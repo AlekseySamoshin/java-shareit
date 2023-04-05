@@ -13,7 +13,6 @@ import javax.persistence.*;
 @ToString
 @Table(name = "items", schema = "public")
 public class Item {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,4 +25,7 @@ public class Item {
 
     @Column(name = "owner_id")
     private Long ownerId;
+
+    @Column(name = "request_id")
+    private Long requestId;
 }

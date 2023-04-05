@@ -21,9 +21,11 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> getItems(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId) {
+    public List<ItemDto> getItems(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
+                                  @RequestParam(name = "from", required = false) Integer pageNum,
+                                  @RequestParam(name = "size", required = false) Integer pageSize) {
         log.info("Запрос на получение списка вещей");
-        return itemService.getItemsByUserId(userId);
+        return itemService.getItemsByUserId(userId, pageNum, pageSize);
     }
 
     @GetMapping("/{itemId}")
@@ -37,9 +39,11 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> searchItemsByText(
             @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
-            @RequestParam String text) {
+            @RequestParam String text,
+            @RequestParam(name = "from", required = false) Integer pageNum,
+            @RequestParam(name = "size", required = false) Integer pageSize) {
         log.info("Запрос на поиск вещи. Текст запроса: " + text);
-        return itemService.searchItemsByText(userId, text);
+        return itemService.searchItemsByText(userId, text, pageNum, pageSize);
     }
 
     @PostMapping
@@ -54,7 +58,6 @@ public class ItemController {
     public CommentDto addComment(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
                                @PathVariable Long itemId,
                                @RequestBody CommentDto commentDto) {
-
     return itemService.addNewComment(userId, itemId, commentDto);
     }
 

@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoMapper;
@@ -13,26 +15,16 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final BookingDtoMapper bookingDtoMapper;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-
-    @Autowired
-    public BookingService(BookingRepository bookingRepository,
-                          BookingDtoMapper bookingDtoMapper,
-                          ItemRepository itemRepository,
-                          UserRepository userRepository) {
-        this.bookingRepository = bookingRepository;
-        this.bookingDtoMapper = bookingDtoMapper;
-        this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
-    }
 
     public BookingDto addBooking(Long userId, BookingShortDto bookingShortDto) {
         validateBookingDto(bookingShortDto);
@@ -77,18 +69,25 @@ public class BookingService {
         return bookingDtoMapper.toDto(booking);
     }
 
-    public List<BookingDto> getBookingsOfUser(Long userId, String state) {
+    public List<BookingDto> getBookingsOfUser(Long userId, String state, Integer from, Integer pageSize) {
         if (state == null) {
             state = "ALL";
         }
         findUserByIdIfExists(userId);
-        List<Booking> bookings = findBookigsWithState(userId, state);
+        if (from == null || pageSize == null) {
+            List<Booking> bookings = findBookigsWithState(userId, state);
+            return bookings.stream()
+                    .map(bookingDtoMapper::toDto)
+                    .collect(Collectors.toList());
+        }
+        validatePagesRequest(from, pageSize);
+        List<Booking> bookings = findBookigsWithStatePageable(userId, state, PageRequest.of(from / pageSize, pageSize));
         return bookings.stream()
                 .map(bookingDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 
-    public List<BookingDto> getBookingsOfOwnerItems(Long ownerId, String state) {
+    public List<BookingDto> getBookingsOfOwnerItems(Long ownerId, String state, Integer pageNum, Integer pageSize) {
         findUserByIdIfExists(ownerId);
         List<Long> itemIds = itemRepository.findAllByOwnerId(ownerId).stream()
                 .map(Item::getId)
@@ -96,16 +95,22 @@ public class BookingService {
         if (itemIds.isEmpty()) {
             throw new NotFoundException("У пользователя id=" + ownerId + " не найдено вещей");
         }
-        List<Booking> bookings = findBookingsOfItemsWithState(itemIds, state);
+        List<Booking> bookings;
+        if (pageNum == null || pageSize == null) {
+            bookings = findBookingsOfItemsWithState(itemIds, state);
+        } else {
+            validatePagesRequest(pageNum, pageSize);
+            bookings = findBookingsOfItemsWithState(itemIds, state, PageRequest.of(pageNum, pageSize));
+        }
+
         return bookings.stream()
                 .map(bookingDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     private User findUserByIdIfExists(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
+        return userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
-        return user;
     }
 
     private void setBookingStatus(Long userId, Booking booking, Boolean approved) {
@@ -120,9 +125,8 @@ public class BookingService {
     }
 
     private Booking findBookingById(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(
+        return bookingRepository.findById(bookingId).orElseThrow(
                 () -> new NotFoundException("Бронирование id=" + bookingId + "не найдено!"));
-        return booking;
     }
 
     private void validateBookingDto(BookingShortDto bookingShortDto) {
@@ -137,7 +141,7 @@ public class BookingService {
             message.append("Не указана дата окончания бронирования! ");
         }
         if (!message.toString().isBlank()) {
-            throw new WrongDataException("Ошибка валидации бронирования: " + message.toString());
+            throw new WrongDataException("Ошибка валидации бронирования: " + message);
         }
     }
 
@@ -151,6 +155,12 @@ public class BookingService {
         }
         if (booking.getEnd().isBefore(currentDateTime)) {
             throw new WrongDataException("Дата окончания аренды уже прошла");
+        }
+    }
+
+    private void validatePagesRequest(Integer pageNum, Integer pageSize) {
+        if (pageNum <= 0 || pageSize <= 0) {
+            throw new WrongDataException("Ошибка: неверно указан начальный индекс или размер страницы");
         }
     }
 
@@ -168,6 +178,25 @@ public class BookingService {
                 return bookingRepository.findAllWaitingByUserId(userId);
             case "REJECTED":
                 return bookingRepository.findAllRejectedByUserId(userId);
+            default:
+                throw new WrongDataException("Unknown state: UNSUPPORTED_STATUS");
+        }
+    }
+
+    private List<Booking> findBookigsWithStatePageable(Long userId, String state, Pageable page) {
+        switch (state.toUpperCase()) {
+            case "ALL":
+                return bookingRepository.findAllByUserId(userId, page);
+            case "CURRENT":
+                return bookingRepository.findAllCurrentByUserId(userId, page);
+            case "PAST":
+                return bookingRepository.findAllPastByUserId(userId, page);
+            case "FUTURE":
+                return bookingRepository.findAllFutureByUserId(userId, page);
+            case "WAITING":
+                return bookingRepository.findAllWaitingByUserId(userId, page);
+            case "REJECTED":
+                return bookingRepository.findAllRejectedByUserId(userId, page);
             default:
                 throw new WrongDataException("Unknown state: UNSUPPORTED_STATUS");
         }
@@ -193,5 +222,28 @@ public class BookingService {
             default:
                 throw new WrongDataException("Unknown state: UNSUPPORTED_STATUS");
         }
+    }
+
+    private List<Booking> findBookingsOfItemsWithState(List<Long> itemIds, String state, Pageable page) {
+        if (state == null) {
+            state = "ALL";
+        }
+        switch (state.toUpperCase()) {
+            case "ALL":
+                return bookingRepository.findAllBookingsForItems(itemIds, page);
+            case "CURRENT":
+                return bookingRepository.findCurrentBookingsForItems(itemIds, page);
+            case "PAST":
+                return bookingRepository.findPastBookingsForItems(itemIds, page);
+            case "FUTURE":
+                return bookingRepository.findFutureBookingsForItems(itemIds, page);
+            case "WAITING":
+                return bookingRepository.findWaititngBookingsForItems(itemIds, page);
+            case "REJECTED":
+                return bookingRepository.findRejectedBookingsForItems(itemIds, page);
+            default:
+                throw new WrongDataException("Unknown state: UNSUPPORTED_STATUS");
+        }
+
     }
 }

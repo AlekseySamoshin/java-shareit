@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
@@ -12,6 +14,8 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentDtoMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoMapper;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -21,48 +25,39 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository requestRepository;
     private final ItemDtoMapper itemDtoMapper;
     private final BookingDtoMapper bookingDtoMapper;
     private final CommentDtoMapper commentDtoMapper;
 
-    @Autowired
-    public ItemService(ItemRepository itemRepository, UserRepository userRepository,
-                       ItemDtoMapper itemDtoMapper, BookingRepository bookingRepository,
-                       BookingDtoMapper bookingDtoMapper, CommentRepository commentRepository,
-                       CommentDtoMapper commentDtoMapper) {
-        this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
-        this.itemDtoMapper = itemDtoMapper;
-        this.bookingRepository = bookingRepository;
-        this.bookingDtoMapper = bookingDtoMapper;
-        this.commentRepository = commentRepository;
-        this.commentDtoMapper = commentDtoMapper;
-    }
-
-    public List<ItemDto> getItemsByUserId(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
-        );
-        List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId).stream()
-                .map(itemDtoMapper::mapToDto)
-                .collect(Collectors.toList());
-        findCommentsForItems(itemDtos);
-        return findLastAndNextBookings(itemDtos, userId);
+    public List<ItemDto> getItemsByUserId(Long userId, Integer pageNum, Integer pageSize) {
+        getUserIfExists(userId);
+        if (pageNum == null && pageSize == null) {
+            return getItemsByUserIdWithoutPaging(userId);
+        }
+        return getItemsByUserIdWithPaging(userId, pageNum, pageSize);
     }
 
     public ItemDto addItem(Long userId, ItemDto itemDto) {
+        ItemRequest itemRequest;
         validateItemDto(itemDto);
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
-        );
+        getUserIfExists(userId);
         itemDto.setOwnerId(userId);
-        return itemDtoMapper.mapToDto(itemRepository.save(itemDtoMapper.mapToItem(itemDto)));
+        Item item = itemRepository.save(itemDtoMapper.mapToItem(itemDto));
+        if (itemDto.getRequestId() != null) {
+            itemRequest = requestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Запрос id=" + itemDto.getRequestId() + " не найден"));
+            itemRequest.getItems().add(item);
+            requestRepository.save(itemRequest);
+        }
+            return itemDtoMapper.mapToDto(item);
     }
 
     public ItemDto getItemById(Long itemId, Long userId) throws NotFoundException {
@@ -78,9 +73,7 @@ public class ItemService {
     }
 
     public ItemDto getItemByIdAndOwnerId(Long userId, Long itemId) {
-        User userOptional = userRepository.findById(userId).orElseThrow(
-                () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
-        );
+        getUserIfExists(userId);
         Item itemOptional = itemRepository.findByIdAndOwnerId(userId, itemId).orElseThrow(
                 () -> new NotFoundException("Вещь с id=" + itemId + " не найдена у пользователя id=" + userId)
         );
@@ -89,11 +82,16 @@ public class ItemService {
         return findLastAndNextBookings(itemDto, userId);
     }
 
-    public List<ItemDto> searchItemsByText(Long userId, String text) {
+    public List<ItemDto> searchItemsByText(Long userId, String text, Integer pageNum, Integer pageSize) {
+        List<Item> items;
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        List<Item> items = itemRepository.findByText(text.toLowerCase());
+        if (pageNum == null && pageSize == null) {
+            items = itemRepository.findByText(text.toLowerCase());
+        } else {
+            items = itemRepository.findByTextPageable(text.toLowerCase(), PageRequest.of(pageNum, pageSize));
+        }
         List<ItemDto> result = items.stream()
                 .map(itemDtoMapper::mapToDto)
                 .collect(Collectors.toList());
@@ -127,7 +125,7 @@ public class ItemService {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с id=" + userId + " не найден")
         );
-        Item item = itemRepository.findById(itemId).orElseThrow(
+        itemRepository.findById(itemId).orElseThrow(
                 () -> new NotFoundException("Вещь id=" + itemId + " не найдена")
         );
         if (!checkUserIsBookerOfItem(userId, itemId)) {
@@ -141,6 +139,28 @@ public class ItemService {
         comment.setCreated(LocalDateTime.now());
         commentDto = commentDtoMapper.mapToDto(commentRepository.save(comment));
         return commentDto;
+    }
+
+    private List<ItemDto> getItemsByUserIdWithoutPaging(Long userId) {
+        List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId).stream()
+                .map(itemDtoMapper::mapToDto)
+                .collect(Collectors.toList());
+        findCommentsForItems(itemDtos);
+        return findLastAndNextBookings(itemDtos, userId);
+    }
+
+    private List<ItemDto> getItemsByUserIdWithPaging(Long userId, Integer pageNum, Integer pageSize) {
+        Pageable page = PageRequest.of(pageNum, pageSize);
+        List<ItemDto> itemDtos = itemRepository.findAllByOwnerId(userId, page).stream()
+                .map(itemDtoMapper::mapToDto)
+                .collect(Collectors.toList());
+        findCommentsForItems(itemDtos);
+        return findLastAndNextBookings(itemDtos, userId);
+    }
+
+    private User getUserIfExists(Long userId) {
+        return userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
     }
 
     private ItemDto findCommentsForItem(ItemDto itemDto) {
@@ -211,12 +231,8 @@ public class ItemService {
         if (itemDto.getOwnerId().equals(userId)) {
             Optional<Booking> nextBooking = bookingRepository.findNextBookingForItem(itemDto.getId());
             Optional<Booking> lastBooking = bookingRepository.findLastBookingForItem(itemDto.getId());
-            if (nextBooking.isPresent()) {
-                itemDto.setNextBooking(bookingDtoMapper.toDto(nextBooking.get()));
-            }
-            if (lastBooking.isPresent()) {
-                itemDto.setLastBooking(bookingDtoMapper.toDto(lastBooking.get()));
-            }
+            nextBooking.ifPresent(booking -> itemDto.setNextBooking(bookingDtoMapper.toDto(booking)));
+            lastBooking.ifPresent(booking -> itemDto.setLastBooking(bookingDtoMapper.toDto(booking)));
             return itemDto;
         }
         itemDto.setLastBooking(null);
@@ -236,7 +252,7 @@ public class ItemService {
             message.append("Не указана доступность вещи для заказа.");
         }
         if (!message.toString().isBlank()) {
-            log.warn("Ошибка валидации вещи: " + message.toString());
+            log.warn("Ошибка валидации вещи: " + message);
             throw new WrongDataException(message.toString());
         }
     }
