@@ -2,18 +2,12 @@ package ru.practicum.shareit.booking.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.user.User;
-
-import javax.validation.constraints.Future;
-import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.NotNull;
+import ru.practicum.shareit.model.Item;
+import ru.practicum.shareit.model.User;
 
 @Getter
 @Setter
 public class BookingDto {
-
-    private String status;
 
     private Long id;
 

@@ -34,10 +34,10 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> addBooking(Long userId, BookingDto bookingDto) {
-        return post("/", userId, bookingDto);
+        return post("", userId, bookingDto);
     }
 
     public ResponseEntity<Object> getBookingById(Long userId, Long bookingId) {
-        return get("/" + userId, bookingId);
+        return get("/" + bookingId, userId);
     }
 }
