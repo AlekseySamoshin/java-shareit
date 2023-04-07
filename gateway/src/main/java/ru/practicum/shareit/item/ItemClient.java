@@ -29,7 +29,7 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getItemsByUserId(Long userId, Integer pageNum, Integer pageSize) {
-        if(pageNum == null || pageSize == null) {
+        if (pageNum == null || pageSize == null) {
             return get("", userId);
         }
         Map<String, Object> parameters = Map.of(
@@ -44,10 +44,10 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> searchItemsByText(Long userId,
-                                                     @NotBlank String text,
-                                                     @PositiveOrZero Integer from,
-                                                     @Positive Integer size) {
-        if(from == null || size == null) {
+                                                    @NotBlank String text,
+                                                    @PositiveOrZero Integer from,
+                                                    @Positive Integer size) {
+        if (from == null || size == null) {
             return get("/search?text=" + text, userId);
         }
         Map<String, Object> parameters = Map.of(

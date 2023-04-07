@@ -30,7 +30,7 @@ public class ItemController {
     public ResponseEntity<Object> getItems(@RequestHeader(value = USER_ID_HEADER) Long userId,
                                            @PositiveOrZero @Null @RequestParam(name = "from", required = false) Integer pageNum,
                                            @Positive @Null @RequestParam(name = "size", required = false) Integer pageSize) {
-        log.info("Запрос на получение списка вещей");
+        log.info("Getting all items");
         return itemClient.getItemsByUserId(userId, pageNum, pageSize);
     }
 
@@ -38,7 +38,7 @@ public class ItemController {
     public ResponseEntity<Object> getItemById(
             @RequestHeader(value = USER_ID_HEADER) Long userId,
             @PathVariable Long itemId) {
-        log.info("Запрос на получение вещи id=" + itemId);
+        log.info("Getting item id=" + itemId);
         return itemClient.getItemById(itemId, userId);
     }
 
@@ -48,7 +48,7 @@ public class ItemController {
             @RequestParam String text,
             @PositiveOrZero @Null @RequestParam(name = "from", required = false) Integer pageNum,
             @Positive @Null @RequestParam(name = "size", required = false) Integer pageSize) {
-        log.info("Запрос на поиск вещи. Текст запроса: " + text);
+        log.info("Searching item by text: " + text);
         return itemClient.searchItemsByText(userId, text, pageNum, pageSize);
     }
 
@@ -56,23 +56,24 @@ public class ItemController {
     public ResponseEntity<Object> addItem(
             @RequestHeader(value = USER_ID_HEADER) Long userId,
             @RequestBody ItemDto itemDto) {
-        log.info("Запрос на добавление вещи пользователя id=" + userId);
+        log.info("Creating new item of user id=" + userId);
         return itemClient.addItem(userId, itemDto);
     }
 
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<Object> addComment(@RequestHeader(value = USER_ID_HEADER) Long userId,
-                                 @PathVariable Long itemId,
-                                 @RequestBody @Valid CommentDto commentDto) {
+                                             @PathVariable Long itemId,
+                                             @RequestBody @Valid CommentDto commentDto) {
+        log.info("Creating new comment from user id=" + userId + " about item id=" + itemId);
         return itemClient.addNewComment(userId, itemId, commentDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<Object>  updateItem(
+    public ResponseEntity<Object> updateItem(
             @RequestHeader(value = USER_ID_HEADER) Long userId,
             @PathVariable Long itemId,
             @RequestBody ItemDto itemDto) {
-        log.info("Запрос на обновление вещи id=" + itemId + " от пользователя id=" + userId);
+        log.info("Updating item id=" + itemId + " from user id=" + userId);
         return itemClient.updateItem(userId, itemId, itemDto);
     }
 }

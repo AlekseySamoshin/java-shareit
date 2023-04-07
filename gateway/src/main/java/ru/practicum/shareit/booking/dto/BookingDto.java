@@ -8,9 +8,10 @@ import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
- @Getter
- @Setter
+@Getter
+@Setter
 public class BookingDto {
+
     @NotNull
     private Long itemId;
 

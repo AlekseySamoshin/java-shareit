@@ -9,15 +9,7 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 public class CommentDto {
-    private Long id;
-
     @NotBlank
     @NotNull
     private String text;
-
-    private Long itemId;
-
-    private Long authorId;
-    private String authorName;
-    private String created;
 }

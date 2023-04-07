@@ -44,7 +44,7 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<Object> addBooking(@RequestHeader(USER_ID_HEADER) long userId,
-                                           @RequestBody @Valid BookingDto bookingDto) {
+                                             @RequestBody @Valid BookingDto bookingDto) {
         log.info("Creating booking, userId={}", userId);
         System.out.println(bookingDto);
         return bookingClient.addBooking(userId, bookingDto);

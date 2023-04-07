@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.itemRequest.dto.ItemRequestDto;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Null;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
@@ -33,6 +32,7 @@ public class ItemRequestController {
 
     @GetMapping
     public ResponseEntity<Object> getAllRequestsOfUser(@RequestHeader(value = USER_ID_HEADER) Long userId) {
+        log.info("Getting all requests of user id=" + userId);
         return itemRequestClient.getAllRequestsOfUser(userId);
     }
 
@@ -40,12 +40,14 @@ public class ItemRequestController {
     public ResponseEntity<Object> getAllRequests(@RequestHeader(value = USER_ID_HEADER) Long userId,
                                                  @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
                                                  @Positive @RequestParam(name = "size", required = false) Integer pageSize) {
+        log.info("Getting all requests pageable");
         return itemRequestClient.getAllRequests(userId, from, pageSize);
     }
 
     @GetMapping("/{requestId}")
     public ResponseEntity<Object> getRequestById(@RequestHeader(value = USER_ID_HEADER) Long userId,
                                                  @Positive @PathVariable Long requestId) {
+        log.info("Getting request id=" + requestId);
         return itemRequestClient.getRequestById(userId, requestId);
     }
 }

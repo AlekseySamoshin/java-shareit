@@ -15,37 +15,37 @@ public class UserController {
     private UserClient userClient;
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
-    public UserController (UserClient userClient) {
+    public UserController(UserClient userClient) {
         this.userClient = userClient;
     }
 
     @GetMapping
     public ResponseEntity<Object> getUsers() {
-        log.info("Запрос на получение списка пользователей");
+        log.info("Get users request");
         return userClient.getUsers();
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<Object> getUserById(@PathVariable Long userId) {
-        log.info("Запрос на получение пользователя id=" + userId);
+        log.info("Get user id=" + userId);
         return userClient.getUserById(userId);
     }
 
     @PostMapping
     public ResponseEntity<Object> addUser(@RequestBody UserDto userDto) {
-        log.info("Запрос на добавление нового пользователя");
+        log.info("Add new user request");
         return userClient.addUser(userDto);
     }
 
     @PatchMapping("/{userId}")
     public ResponseEntity<Object> updateUser(@PathVariable Long userId, @RequestBody UserDto userDto) {
-        log.info("Запрос на обновление информации о пользователе id=" + userId);
+        log.info("Patch user id=" + userId);
         return userClient.updateUser(userId, userDto);
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Object> deleteUser(@PathVariable Long userId) {
-        log.info("Запрос на удаление пользователя id=" + userId);
+        log.info("Delete user id=" + userId);
         return userClient.deleteUserById(userId);
     }
 }

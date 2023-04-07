@@ -17,14 +17,14 @@ public class BookingClient extends BaseClient {
 
     public BookingClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
-          builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
-                  .requestFactory(HttpComponentsClientHttpRequestFactory::new)
-                  .build()
+                builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
+                        .requestFactory(HttpComponentsClientHttpRequestFactory::new)
+                        .build()
         );
     }
 
     public ResponseEntity<Object> getBookingsOfUser(Long userId, String state, Integer from, Integer size) {
-        if(from==null||size==null) {
+        if (from == null || size == null) {
             return get("?state=" + state, userId);
         }
         Map<String, Object> parameters = Map.of(
@@ -36,7 +36,7 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getBookingsForItems(Long userId, String state, Integer from, Integer size) {
-        if(from==null||size==null) {
+        if (from == null || size == null) {
             return get("/owner?state=" + state, userId);
         }
         Map<String, Object> parameters = Map.of(
