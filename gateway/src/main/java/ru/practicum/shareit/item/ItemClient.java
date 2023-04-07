@@ -28,7 +28,7 @@ public class ItemClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> getItems(Long userId, Integer pageNum, Integer pageSize) {
+    public ResponseEntity<Object> getItemsByUserId(Long userId, Integer pageNum, Integer pageSize) {
         Map<String, Object> parameters = Map.of(
                 "from", pageNum,
                 "size", pageSize
@@ -36,11 +36,11 @@ public class ItemClient extends BaseClient {
         return get("?state={state}&from={from}&size={size}", userId, parameters);
     }
 
-    public ResponseEntity<Object> getItemById (Long userId, Long itemId, Integer pageNum, Integer pageSize) {
+    public ResponseEntity<Object> getItemById(Long userId, Long itemId) {
         return get("/" + itemId, userId);
     }
 
-    public ResponseEntity<Object> searchItemsByText (Long userId,
+    public ResponseEntity<Object> searchItemsByText(Long userId,
                                                      @NotBlank String text,
                                                      @PositiveOrZero Integer from,
                                                      @Positive Integer size) {
@@ -56,62 +56,12 @@ public class ItemClient extends BaseClient {
         return post("", userId, itemDto);
     }
 
-    public ResponseEntity<Object> addComment (Long userId, Long itemId, CommentDto commentDto) {
+    public ResponseEntity<Object> addNewComment(Long userId, Long itemId, CommentDto commentDto) {
         return post("/" + itemId + "/comments", userId, null, commentDto);
     }
 
     public ResponseEntity<Object> updateItem(Long userId, Long itemId, ItemDto itemDto) {
         return patch("/" + itemId, userId, itemDto);
     }
-
-//
-//    public List<ItemDto> getItems(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
-//                                  @RequestParam(name = "from", required = false) Integer pageNum,
-//                                  @RequestParam(name = "size", required = false) Integer pageSize) {
-//        log.info("Запрос на получение списка вещей");
-//        return itemService.getItemsByUserId(userId, pageNum, pageSize);
-//    }
-//
-//    @GetMapping("/{itemId}")
-//    public ItemDto getItemById(
-//            @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
-//            @PathVariable Long itemId) {
-//        log.info("Запрос на получение вещи id=" + itemId);
-//        return itemService.getItemById(itemId, userId);
-//    }
-//
-//    @GetMapping("/search")
-//    public List<ItemDto> searchItemsByText(
-//            @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
-//            @RequestParam String text,
-//            @RequestParam(name = "from", required = false) Integer pageNum,
-//            @RequestParam(name = "size", required = false) Integer pageSize) {
-//        log.info("Запрос на поиск вещи. Текст запроса: " + text);
-//        return itemService.searchItemsByText(userId, text, pageNum, pageSize);
-//    }
-//
-//    @PostMapping
-//    public ItemDto addItem(
-//            @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
-//            @RequestBody ItemDto itemDto) {
-//        log.info("Запрос на добавление вещи пользователя id=" + userId);
-//        return itemService.addItem(userId, itemDto);
-//    }
-//
-//    @PostMapping("/{itemId}/comment")
-//    public CommentDto addComment(@RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
-//                                 @PathVariable Long itemId,
-//                                 @RequestBody CommentDto commentDto) {
-//        return itemService.addNewComment(userId, itemId, commentDto);
-//    }
-//
-//    @PatchMapping("/{itemId}")
-//    public ItemDto updateItem(
-//            @RequestHeader(value = USER_ID_REQUEST_HEADER) Long userId,
-//            @PathVariable Long itemId,
-//            @RequestBody ItemDto itemDto) {
-//        log.info("Запрос на обновление вещи id=" + itemId + " от пользователя id=" + userId);
-//        return itemService.updateItem(userId, itemId, itemDto);
-//    }
 
 }
