@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -9,9 +8,13 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Null;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
+
 @Controller
-@RequestMapping(path = "/users")
-@RequiredArgsConstructor
+@RequestMapping(path = "/items")
 @Slf4j
 @Validated
 public class ItemController {
@@ -19,10 +22,14 @@ public class ItemController {
 
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
+    public ItemController(ItemClient itemClient) {
+        this.itemClient = itemClient;
+    }
+
     @GetMapping
     public ResponseEntity<Object> getItems(@RequestHeader(value = USER_ID_HEADER) Long userId,
-                                           @RequestParam(name = "from", required = false) Integer pageNum,
-                                           @RequestParam(name = "size", required = false) Integer pageSize) {
+                                           @PositiveOrZero @Null @RequestParam(name = "from", required = false) Integer pageNum,
+                                           @Positive @Null @RequestParam(name = "size", required = false) Integer pageSize) {
         log.info("Запрос на получение списка вещей");
         return itemClient.getItemsByUserId(userId, pageNum, pageSize);
     }
@@ -39,8 +46,8 @@ public class ItemController {
     public ResponseEntity<Object> searchItemsByText(
             @RequestHeader(value = USER_ID_HEADER) Long userId,
             @RequestParam String text,
-            @RequestParam(name = "from", required = false) Integer pageNum,
-            @RequestParam(name = "size", required = false) Integer pageSize) {
+            @PositiveOrZero @Null @RequestParam(name = "from", required = false) Integer pageNum,
+            @Positive @Null @RequestParam(name = "size", required = false) Integer pageSize) {
         log.info("Запрос на поиск вещи. Текст запроса: " + text);
         return itemClient.searchItemsByText(userId, text, pageNum, pageSize);
     }
@@ -56,7 +63,7 @@ public class ItemController {
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<Object> addComment(@RequestHeader(value = USER_ID_HEADER) Long userId,
                                  @PathVariable Long itemId,
-                                 @RequestBody CommentDto commentDto) {
+                                 @RequestBody @Valid CommentDto commentDto) {
         return itemClient.addNewComment(userId, itemId, commentDto);
     }
 

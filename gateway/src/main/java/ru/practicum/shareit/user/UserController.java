@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -10,12 +9,15 @@ import ru.practicum.shareit.user.dto.UserDto;
 
 @Controller
 @RequestMapping(path = "/users")
-@RequiredArgsConstructor
 @Slf4j
 @Validated
 public class UserController {
     private UserClient userClient;
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+
+    public UserController (UserClient userClient) {
+        this.userClient = userClient;
+    }
 
     @GetMapping
     public ResponseEntity<Object> getUsers() {

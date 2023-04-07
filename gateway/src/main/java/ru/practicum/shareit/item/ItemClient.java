@@ -29,14 +29,17 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getItemsByUserId(Long userId, Integer pageNum, Integer pageSize) {
+        if(pageNum == null || pageSize == null) {
+            return get("", userId);
+        }
         Map<String, Object> parameters = Map.of(
                 "from", pageNum,
                 "size", pageSize
         );
-        return get("?state={state}&from={from}&size={size}", userId, parameters);
+        return get("?from={from}&size={size}", userId, parameters);
     }
 
-    public ResponseEntity<Object> getItemById(Long userId, Long itemId) {
+    public ResponseEntity<Object> getItemById(Long itemId, Long userId) {
         return get("/" + itemId, userId);
     }
 
@@ -44,6 +47,9 @@ public class ItemClient extends BaseClient {
                                                      @NotBlank String text,
                                                      @PositiveOrZero Integer from,
                                                      @Positive Integer size) {
+        if(from == null || size == null) {
+            return get("/search?text=" + text, userId);
+        }
         Map<String, Object> parameters = Map.of(
                 "text", text,
                 "from", from,
@@ -57,7 +63,7 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> addNewComment(Long userId, Long itemId, CommentDto commentDto) {
-        return post("/" + itemId + "/comments", userId, null, commentDto);
+        return post("/" + itemId + "/comment", userId, null, commentDto);
     }
 
     public ResponseEntity<Object> updateItem(Long userId, Long itemId, ItemDto itemDto) {

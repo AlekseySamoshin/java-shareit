@@ -1,6 +1,5 @@
 package ru.practicum.shareit.itemRequest;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -9,17 +8,21 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.itemRequest.dto.ItemRequestDto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Null;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 @Controller
 @RequestMapping(path = "/requests")
-@RequiredArgsConstructor
 @Slf4j
 @Validated
 public class ItemRequestController {
     private ItemRequestClient itemRequestClient;
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+
+    public ItemRequestController(ItemRequestClient itemRequestClient) {
+        this.itemRequestClient = itemRequestClient;
+    }
 
     @PostMapping
     public ResponseEntity<Object> addNewRequest(@RequestHeader(USER_ID_HEADER) Long userId,
@@ -37,7 +40,6 @@ public class ItemRequestController {
     public ResponseEntity<Object> getAllRequests(@RequestHeader(value = USER_ID_HEADER) Long userId,
                                                  @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
                                                  @Positive @RequestParam(name = "size", required = false) Integer pageSize) {
-
         return itemRequestClient.getAllRequests(userId, from, pageSize);
     }
 

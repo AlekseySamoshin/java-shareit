@@ -20,5 +20,5 @@ public class ItemRequestDto {
 
     private String created;
 
-    private List<Item> items;
+//    private List<Item> items;
 }
