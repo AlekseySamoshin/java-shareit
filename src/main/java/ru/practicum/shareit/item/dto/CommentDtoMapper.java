@@ -3,8 +3,6 @@ package ru.practicum.shareit.item.dto;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.Comment;
 
-import java.time.LocalDateTime;
-
 @Component
 public class CommentDtoMapper {
     public CommentDto mapToDto(Comment comment) {

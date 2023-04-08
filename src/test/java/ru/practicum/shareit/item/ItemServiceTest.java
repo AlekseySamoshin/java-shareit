@@ -10,7 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.booking.dto.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoMapper;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -173,19 +173,26 @@ class ItemServiceTest {
     void getItemsByUserId() {
         when(userRepository.findById(any())).thenReturn(Optional.of(owner));
         when(itemRepository.findAllByOwnerId(anyLong())).thenReturn(List.of(item1, item2));
-        when(itemRepository.findAllByOwnerId(anyLong(), any())).thenReturn(List.of(item1, item2));
         when(itemDtoMapper.mapToDto(any())).then(Mockito.CALLS_REAL_METHODS);
         when(itemDtoMapper.mapToItem(any())).then(Mockito.CALLS_REAL_METHODS);
         when(bookingRepository.findNextBookingForItem(eq(1L))).thenReturn(Optional.of(nextBooking));
         when(bookingRepository.findLastBookingForItem(eq(1L))).thenReturn(Optional.of(lastBooking));
         when(commentRepository.findAllByItemId(any())).thenReturn(comments);
-        when(commentRepository.findAllForItems(any())).thenReturn(comments);
-
-        List<ItemDto> itemDtoList = itemService.getItemsByUserId(owner.getId());
+        List<ItemDto> itemDtoList = itemService.getItemsByUserId(owner.getId(), null, null);
         assertEquals(2, itemDtoList.size());
         assertEquals(item1.getId(), itemDtoList.get(0).getId());
         assertEquals(item2.getDescription(), itemDtoList.get(1).getDescription());
+    }
 
+    @Test
+    void getItemsByUserIdWithPaging() {
+        when(userRepository.findById(any())).thenReturn(Optional.of(owner));
+        when(itemRepository.findAllByOwnerId(anyLong(), any())).thenReturn(List.of(item1, item2));
+        when(itemDtoMapper.mapToDto(any())).then(Mockito.CALLS_REAL_METHODS);
+        when(itemDtoMapper.mapToItem(any())).then(Mockito.CALLS_REAL_METHODS);
+        when(bookingRepository.findNextBookingForItem(eq(1L))).thenReturn(Optional.of(nextBooking));
+        when(bookingRepository.findLastBookingForItem(eq(1L))).thenReturn(Optional.of(lastBooking));
+        when(commentRepository.findAllForItems(any())).thenReturn(comments);
         List<ItemDto> itemDtoListPageable = itemService.getItemsByUserId(owner.getId(), 1, 10);
         assertEquals(2, itemDtoListPageable.size());
         assertEquals(item1.getId(), itemDtoListPageable.get(0).getId());
@@ -255,7 +262,6 @@ class ItemServiceTest {
         ItemDto itemDto2 = itemService.getItemByIdAndOwnerId(owner.getId(), item2.getId());
         assertEquals(item1.getName(), itemDto1.getName());
         assertEquals(item2.getName(), itemDto2.getName());
-
         Exception exception = assertThrows(NotFoundException.class,
                 () -> itemService.getItemByIdAndOwnerId(owner.getId(), 99L));
         assertEquals("Вещь с id=99 не найдена у пользователя id=" + owner.getId(), exception.getMessage());
@@ -278,7 +284,6 @@ class ItemServiceTest {
         assertEquals(item2.getName(), itemDtoList2.get(0).getName());
         List<ItemDto> itemDtoListWithEmptyTextRequest = itemService.searchItemsByText(owner.getId(), "", null, null);
         assertEquals(0, itemDtoListWithEmptyTextRequest.size());
-
     }
 
     @Test

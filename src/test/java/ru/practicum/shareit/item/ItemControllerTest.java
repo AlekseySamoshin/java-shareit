@@ -58,7 +58,7 @@ class ItemControllerTest {
 
     @Test
     void getItems() throws Exception {
-        when(itemService.getItemsByUserId(eq(1L))).thenReturn(List.of(itemDto));
+        when(itemService.getItemsByUserId(eq(1L), eq(null), eq(null))).thenReturn(List.of(itemDto));
         when(itemService.getItemsByUserId(eq(1L), eq(1), eq(10))).thenReturn(List.of(itemDto));
         mockMvc.perform(get("/items")
                         .header("X-Sharer-User-Id", 1)

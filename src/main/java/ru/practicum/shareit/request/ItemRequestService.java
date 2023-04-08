@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ItemRequestService {
     private final ItemRequestRepository requestRepository;
     private final UserRepository userRepository;
@@ -35,6 +37,7 @@ public class ItemRequestService {
         requestDto.setRequestorId(userId);
         requestDto.setCreated(LocalDateTime.now().toString());
         ItemRequest request = requestRepository.save(requestDtoMapper.toRequest(requestDto));
+        log.info("Реквест сохранен");
         return requestDtoMapper.toDto(request);
     }
 
@@ -48,6 +51,7 @@ public class ItemRequestService {
     public List<ItemRequestDto> getAllRequests(Long userId, Integer pageNum, Integer pageSize) {
         getUserIfExists(userId);
         if (pageNum == null || pageSize == null) {
+            log.info("Выдача реквестов одним списком");
             return requestRepository.findAll().stream()
                     .filter(itemRequest -> !itemRequest.getRequestorId().equals(userId))
                     .map(requestDtoMapper::toDto)
@@ -55,6 +59,7 @@ public class ItemRequestService {
         }
         validatePagesRequest(pageNum, pageSize);
         Pageable page = PageRequest.of(pageNum, pageSize);
+        log.info("Выдача реквестов постранично");
         return requestRepository.findAll(page).stream()
                 .filter(itemRequest -> !itemRequest.getRequestorId().equals(userId))
                 .map(requestDtoMapper::toDto)
@@ -75,13 +80,17 @@ public class ItemRequestService {
 
     private void validatePagesRequest(Integer pageNum, Integer pageSize) {
         if (pageNum < 0 || pageSize <= 0) {
-            throw new WrongDataException("Ошибка: неыерно указан начальный индекс или размер страницы");
+            String message = "Ошибка: неверно указан начальный индекс или размер страницы";
+            log.warn(message);
+            throw new WrongDataException(message);
         }
     }
 
     private void validateItemRequestDto(ItemRequestDto requestDto) {
         if (requestDto.getDescription() == null || requestDto.getDescription().isBlank()) {
-            throw new WrongDataException("Передан пустой текст запроса");
+            String message = "Получен пустой текст запроса";
+            log.warn(message);
+            throw new WrongDataException(message);
         }
     }
 }
