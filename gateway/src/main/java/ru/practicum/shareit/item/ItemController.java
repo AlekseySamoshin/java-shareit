@@ -18,7 +18,7 @@ import javax.validation.constraints.PositiveOrZero;
 @Slf4j
 @Validated
 public class ItemController {
-    ItemClient itemClient;
+    private final ItemClient itemClient;
 
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 

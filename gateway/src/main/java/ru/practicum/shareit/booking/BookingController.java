@@ -17,7 +17,7 @@ import javax.validation.constraints.PositiveOrZero;
 @Slf4j
 @Validated
 public class BookingController {
-    private BookingClient bookingClient;
+    private final BookingClient bookingClient;
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     public BookingController(BookingClient bookingClient) {

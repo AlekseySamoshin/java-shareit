@@ -22,10 +22,12 @@ public class Booking {
     private Long id;
 
     @OneToOne
+    @ToString.Exclude
     @JoinColumn(name = "item_id")
     private Item item;
 
     @OneToOne
+    @ToString.Exclude
     @JoinColumn(name = "booker_id")
     private User booker;
 

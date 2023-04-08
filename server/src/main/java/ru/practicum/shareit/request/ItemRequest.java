@@ -2,6 +2,7 @@ package ru.practicum.shareit.request;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import ru.practicum.shareit.item.Item;
 
 import javax.persistence.*;
@@ -23,6 +24,7 @@ public class ItemRequest {
     private String description;
 
     @OneToMany
+    @ToString.Exclude
     @JoinColumn(name = "item_id")
     private List<Item> items;
 

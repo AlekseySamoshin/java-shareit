@@ -12,7 +12,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 @Slf4j
 @Validated
 public class UserController {
-    private UserClient userClient;
+    private final UserClient userClient;
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     public UserController(UserClient userClient) {
