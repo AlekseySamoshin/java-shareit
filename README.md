@@ -8,5 +8,17 @@
 - Java 11
 - Spring Boot
 - Hibernate
+- PostgreSQL
 - Maven
 - Docker
+
+
+сборка проекта с помощью maven
+```
+mvn package
+```
+
+сборка и запуск контейнеров с помощью docker-compose
+```
+docker-compose up --build
+```
